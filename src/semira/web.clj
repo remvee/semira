@@ -2,14 +2,19 @@
   (:use [semira.models :as models]
         [semira.audio :as audio]
         [compojure.core :only [defroutes GET POST ANY]]
-        [hiccup.core :only [html]])
+        [ring.middleware.file             :only [wrap-file]]
+        [ring.middleware.file-info        :only [wrap-file-info]]
+        [hiccup.core :only [html]]
+        [hiccup.page-helpers :only [include-js]])
   (:import [java.io File]))
 
 (defn layout [title body]
   {:status 200
    :headers {"Content-Type" "text/html"}
    :body (html [:html
-                [:head [:title title]]
+                [:head
+                 [:title title]
+                 (include-js "/js/jquery.js" "/js/app.js")]
                 [:body
                  [:div.header
                   [:h1 title]]
@@ -53,7 +58,8 @@
              (interposed-html track " / " :artist :album :title)]
             " "
             [:span.length (int->time (:length track))]])
-         (:tracks album))]])
+         (:tracks album))]
+   [:div#audio-container]])
 
 (defn albums-index []
   [:ul.albums
@@ -63,7 +69,7 @@
             (album-title album)]])
         (models/albums))])
 
-(defroutes app
+(defroutes routes
   (GET "/" []
        (layout "SEMIRA index" (albums-index)))
   (GET "/album/:id" [id]
@@ -75,5 +81,7 @@
          {:status 200
           :headers {"Content-Type" "audio/ogg"}
           :body (audio/ogg-stream (File. (:path track)))})))
+
+(def app (-> routes (wrap-file "public") wrap-file-info))
 
 ;; (do (require 'ring.adapter.jetty) (ring.adapter.jetty/run-jetty (var app) {:port 8080}))
