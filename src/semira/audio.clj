@@ -12,6 +12,8 @@
              :album
              :composer
              :conductor
+             :disc_no
+             :disc_total
              :genre
              :producer
              :remixer
@@ -31,12 +33,16 @@
 (defn info
   "Pull meta data from audio file."
   [file]
-  (if-let [tag (.getTag (AudioFileIO/read file))]
-    (into {}
-          (filter (complement #(or (nil? (last %))
-                                   (= "" (last %))))
-                  (map (fn [v]
-                         [v ((get procs v identity)
-                             (.getFirst tag
-                                        (FieldKey/valueOf (.toUpperCase (name v)))))])
-                       fields)))))
+  (let [audio (AudioFileIO/read file)
+        tag (.getTag audio)
+        header (.getAudioHeader audio)]
+    (if (and tag header)
+      (into {:length (.getTrackLength header)
+             :encoding (.getEncodingType header)}
+            (filter (complement #(or (nil? (last %))
+                                     (= "" (last %))))
+                    (map (fn [v]
+                           [v ((get procs v identity)
+                               (.getFirst tag
+                                          (FieldKey/valueOf (.toUpperCase (name v)))))])
+                         fields))))))

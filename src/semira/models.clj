@@ -1,0 +1,57 @@
+(ns semira.models
+  (:use [semira.audio :as audio])
+  (:import [java.io File]))
+
+(def albums-container (atom []))
+
+(defn albums [] @albums-container)
+
+(defn update-album [album]
+  (let [tracks (map #(merge album %) (:tracks album))
+        common (filter #(apply = (map % tracks))
+                       (into #{} (flatten (map keys tracks))))
+        album (merge
+               (select-keys (first tracks) common)
+               {:tracks (sort (fn [a b]
+                                (if (and (:track a) (:track b))
+                                  (.compareTo (:track a) (:track b))
+                                  (.compareTo (:path a) (:path b))))
+                              (map #(apply dissoc % common) tracks))})]
+    (swap! albums-container
+           (fn [albums album]
+             (sort (fn [a b]
+                     (.compareTo (apply str (map #(% a) [:artist :year :album]))
+                                 (apply str (map #(% b) [:artist :year :album]))))
+                   (conj (filter #(not= (:dir album)
+                                        (:dir %))
+                                 albums)
+                         album))) album)))
+
+(defn update-track [track]
+  (let [dir (-> (:path track) File. .getParent)
+        cur (first (filter #(= dir (:dir %))
+                           (albums)))]
+    (update-album
+     (if cur
+       (update-in cur [:tracks]
+                  (fn [tracks track]
+                    (conj (vec (filter #(not= (:path track)
+                                              (:path %)) tracks))
+                          track)) track)
+       (merge {:dir dir
+               :album (:album track)
+               :year (:year track)
+               :genre (:genre track)}
+              {:tracks [track]})))))
+
+(defn update-file [file]
+  (update-track (merge (audio/info file) {:path (.getPath file)})))
+
+(comment
+  (do
+    (doseq [file (filter #(and (.isFile %)
+                               (re-matches #".+\.(mp[34]|m4a|flac|ogg)"
+                                           (.getName %)))
+                         (file-seq (File. "/home/remco/Music")))]
+      (update-file file))
+    nil))
