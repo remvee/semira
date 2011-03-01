@@ -62,6 +62,10 @@
   (first (filter #(= id (:id %))
                  (albums))))
 
+(defn track-by-id [id]
+  (first (filter #(= id (:id %))
+                 (flatten (map :tracks (albums))))))
+
 (comment
   (do
     (doseq [file (filter #(and (.isFile %)

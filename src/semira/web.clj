@@ -1,7 +1,9 @@
 (ns semira.web
   (:use [semira.models :as models]
+        [semira.audio :as audio]
         [compojure.core :only [defroutes GET POST ANY]]
-        [hiccup.core :only [html]]))
+        [hiccup.core :only [html]])
+  (:import [java.io File]))
 
 (defn layout [title body]
   {:status 200
@@ -47,7 +49,7 @@
    [:ol.tracks
     (map (fn [track]
            [:li.track
-            [:a {:href "#"}
+            [:a {:href (str "/track/" (:id track))}
              (interposed-html track " / " :artist :album :title)]
             " "
             [:span.length (int->time (:length track))]])
@@ -55,10 +57,10 @@
 
 (defn albums-index []
   [:ul.albums
-   (map (fn [a]
+   (map (fn [album]
           [:li.album
-           [:a {:href (str "/album/" (:id a))}
-            (album-title a)]])
+           [:a {:href (str "/album/" (:id album))}
+            (album-title album)]])
         (models/albums))])
 
 (defroutes app
@@ -67,6 +69,11 @@
   (GET "/album/:id" [id]
        (let [album (models/album-by-id id)]
          (layout (apply str "SEMIRA album")
-                 (album-show album)))))
+                 (album-show album))))
+  (GET "/track/:id" [id]
+       (let [track (models/track-by-id id)]
+         {:status 200
+          :headers {"Content-Type" "audio/ogg"}
+          :body (audio/ogg-stream (File. (:path track)))})))
 
 ;; (do (require 'ring.adapter.jetty) (ring.adapter.jetty/run-jetty (var app) {:port 8080}))
