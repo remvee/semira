@@ -6,6 +6,14 @@
 
 (defn albums [] @albums-container)
 
+(defn- sha1 [value]
+  (let [digest (java.security.MessageDigest/getInstance "SHA1")
+        value  (java.io.StringBufferInputStream. value)
+        output (java.security.DigestInputStream. value digest)]
+    (while (not= -1 (.read output)))
+    (apply str (map #(format "%02x" %)
+                    (.digest digest)))))
+
 (defn update-album [album]
   (let [tracks (map #(merge album %) (:tracks album))
         common (filter #(apply = (map % tracks))
@@ -16,7 +24,8 @@
                                 (if (and (:track a) (:track b))
                                   (.compareTo (:track a) (:track b))
                                   (.compareTo (:path a) (:path b))))
-                              (map #(apply dissoc % common) tracks))})]
+                              (map #(apply dissoc % common) tracks))}
+               {:id (sha1 (:dir (first tracks)))})]
     (swap! albums-container
            (fn [albums album]
              (sort (fn [a b]
@@ -45,7 +54,13 @@
               {:tracks [track]})))))
 
 (defn update-file [file]
-  (update-track (merge (audio/info file) {:path (.getPath file)})))
+  (update-track (merge (audio/info file)
+                       {:path (.getPath file)
+                        :id (sha1 (.getPath file))})))
+
+(defn album-by-id [id]
+  (first (filter #(= id (:id %))
+                 (albums))))
 
 (comment
   (do
