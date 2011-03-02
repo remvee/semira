@@ -1,6 +1,7 @@
 (ns semira.web
   (:use [semira.models :as models]
-        [semira.audio :as audio]
+        [semira.stream :as stream]
+        
         [compojure.core :only [defroutes GET POST ANY]]
         [ring.middleware.file             :only [wrap-file]]
         [ring.middleware.file-info        :only [wrap-file-info]]
@@ -80,7 +81,7 @@
        (let [track (models/track-by-id id)]
          {:status 200
           :headers {"Content-Type" "audio/ogg"}
-          :body (audio/ogg-stream (File. (:path track)))})))
+          :body (stream/input track)})))
 
 (def app (-> routes (wrap-file "public") wrap-file-info))
 

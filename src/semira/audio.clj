@@ -1,5 +1,5 @@
 (ns semira.audio
-  (:import [java.io File StringBufferInputStream]
+  (:import [java.io StringBufferInputStream]
            [java.util.logging LogManager]
            [org.jaudiotagger.audio AudioFileIO]
            [org.jaudiotagger.tag FieldKey]))
@@ -46,29 +46,3 @@
                                (.getFirst tag
                                           (FieldKey/valueOf (.toUpperCase (name v)))))])
                          fields))))))
-
-(defn ogg-stream
-  "Return a OGG Vorbis input stream of the given track."
-  [file]
-  (let [decoder (condp re-matches (.getPath file)
-                  #".*\.flac" "flacdec"
-                  #".*\.ogg"  "oggdemux ! vorbisdec"
-                  #".*\.mp3"  "ffdemux_mp3 ! ffdec_mp3"
-                  #".*\.m4a"  "ffdemux_mov_mp4_m4a_3gp_3g2_mj2 ! faad")
-        process (-> (Runtime/getRuntime) (.exec (into-array ["gst-launch"
-                                                             "-q"
-                                                             "filesrc"
-                                                             "location="
-                                                             (.getPath file)
-                                                             "!"
-                                                             decoder
-                                                             "!"
-                                                             "audioconvert"
-                                                             "!"
-                                                             "vorbisenc"
-                                                             "!"
-                                                             "oggmux"
-                                                             "!"
-                                                             "fdsink"
-                                                             "fd=1"])))]
-    (.getInputStream process)))
