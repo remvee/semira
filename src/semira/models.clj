@@ -21,9 +21,14 @@
         album (merge
                (select-keys (first tracks) common)
                {:tracks (sort (fn [a b]
-                                (if (and (:track a) (:track b))
-                                  (.compareTo (:track a) (:track b))
-                                  (.compareTo (:path a) (:path b))))
+                                (cond ; TODO make prettier
+                                 (and (:track a) (:track b))
+                                 (.compareTo (:track a) (:track b))
+
+                                 (and (:path a) (:path b))
+                                 (.compareTo (:path a) (:path b))
+
+                                 :else 0))
                               (map #(apply dissoc % common) tracks))}
                {:id (sha1 (:dir (first tracks)))})]
     (swap! albums-container
@@ -36,7 +41,7 @@
                                  albums)
                          album))) album)))
 
-(defn update-track [track]
+(defn update-track [track] ; TODO should happen in update-album swap!
   (let [dir (-> (:path track) File. .getParent)
         cur (first (filter #(= dir (:dir %))
                            (albums)))]
@@ -47,11 +52,13 @@
                     (conj (vec (filter #(not= (:path track)
                                               (:path %)) tracks))
                           track)) track)
-       (merge {:dir dir
-               :album (:album track)
-               :year (:year track)
-               :genre (:genre track)}
-              {:tracks [track]})))))
+       (into {:dir dir
+              :tracks [track]}
+             (filter last
+                     {:dir dir
+                      :album (:album track)
+                      :year (:year track)
+                      :genre (:genre track)}))))))
 
 (defn update-file [file]
   (update-track (merge (audio/info file)
@@ -69,7 +76,7 @@
 (comment
   (do
     (doseq [file (filter #(and (.isFile %)
-                               (re-matches #".+\.(mp[34]|m4a|flac|ogg)"
+                               (re-matches #".+\.(mp3|m4a|flac|ogg)"
                                            (.getName %)))
                          (file-seq (File. "/home/remco/Music")))]
       (update-file file))

@@ -2,7 +2,7 @@
   (:import [java.io StringBufferInputStream]
            [java.util.logging LogManager]
            [org.jaudiotagger.audio AudioFileIO]
-           [org.jaudiotagger.tag FieldKey]))
+           [org.jaudiotagger.tag FieldKey TagField TagTextField]))
 
 ;; kill log messages from jaudiotagger
 (.readConfiguration (LogManager/getLogManager)
@@ -23,12 +23,24 @@
              :year])
 
 (defn to-i [v]
-  (and v
-       (re-matches #"\d+" v)
-       (Integer/valueOf v)))
+  (and (first v)
+       (re-matches #"\d+" (first v))
+       (Integer/valueOf (first v))))
 
 (def procs {:track       to-i
-            :track_total to-i})
+            :track_total to-i
+            :disc_no     to-i
+            :disc_total  to-i
+            :album       first
+            :title       first
+            :year        first
+            :conductor   first})
+
+(defmulti field-str class)
+(defmethod field-str TagTextField
+  [field] (.getContent field))
+(defmethod field-str TagField
+  [field] (.toString field))
 
 (defn info
   "Pull meta data from audio file."
@@ -39,10 +51,10 @@
     (if (and tag header)
       (into {:length (.getTrackLength header)
              :encoding (.getEncodingType header)}
-            (filter (complement #(or (nil? (last %))
-                                     (= "" (last %))))
-                    (map (fn [v]
-                           [v ((get procs v identity)
-                               (.getFirst tag
-                                          (FieldKey/valueOf (.toUpperCase (name v)))))])
-                         fields))))))
+            (map (fn [[k v]] [k ((get procs k identity) v)])
+                 (filter #(seq (last %))
+                         (map (fn [k]
+                                (let [fs (.getFields tag
+                                                     (FieldKey/valueOf (.toUpperCase (name k))))]
+                                  [k (vec (map field-str fs))]))
+                              fields)))))))

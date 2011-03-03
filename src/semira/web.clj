@@ -32,9 +32,15 @@
                (not= 0 minutes) (format "%d:%02d" minutes seconds)
                :else            (format ":%02d" seconds)))))
 
+(defmulti h class)
+(defmethod h java.util.List
+  [val] (apply str (interpose ", " val)))
+(defmethod h Object
+  [val] (str val))
+
 (defn interposed-html [rec sep & ks]
   (let [r (interpose sep
-                     (map #(vec [:span {:class (name %)} (rec %)])
+                     (map #(vec [:span {:class (name %)} (h (rec %))])
                           (filter #(rec %) ks)))]
     (if (seq r) r "..")))
 
@@ -49,7 +55,7 @@
     (mapcat #(vec [[:dt {:class (name %)}
                     (name %)]
                    [:dd {:class (name %)}
-                    (album %)]])
+                    (h (album %))]])
             (filter #(album %)
                     [:artist :album :year :composer :conductor :producer :remixer :genre :encoding]))]
    [:ol.tracks
