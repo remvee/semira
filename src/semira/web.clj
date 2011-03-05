@@ -1,6 +1,7 @@
 (ns semira.web
   (:use [semira.models :as models]
         [semira.stream :as stream]
+        [semira.utils :as utils]
         
         [compojure.core :only [defroutes GET POST ANY]]
         [ring.middleware.file             :only [wrap-file]]
@@ -44,8 +45,11 @@
                           (filter #(rec %) ks)))]
     (if (seq r) r "..")))
 
+(def album-key-precedence [:genre :artist :album :year])
+(defn albums-sorted [] (apply utils/sort-by-keys (models/albums) album-key-precedence))
+
 (defn album-title [album]
-  (interposed-html album " - " :artist :album :year))
+  (apply interposed-html album " - " album-key-precedence))
 
 (defn album-show [album]
   [:div.album
@@ -74,7 +78,7 @@
           [:li.album
            [:a {:href (str "/album/" (:id album))}
             (album-title album)]])
-        (models/albums))])
+        (albums-sorted))])
 
 (defroutes routes
   (GET "/" []
