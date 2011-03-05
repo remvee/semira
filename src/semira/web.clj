@@ -4,22 +4,26 @@
         [semira.utils :as utils]
         
         [compojure.core :only [defroutes GET POST ANY]]
-        [ring.middleware.file             :only [wrap-file]]
-        [ring.middleware.file-info        :only [wrap-file-info]]
+        [ring.middleware.params :only [wrap-params]]
+        [ring.middleware.file :only [wrap-file]]
+        [ring.middleware.file-info :only [wrap-file-info]]
+        
         [hiccup.core :only [html]]
         [hiccup.page-helpers :only [include-js]])
   (:import [java.io File]))
 
-(defn layout [title body]
+(def *title* "SEMIRA")
+
+(defn layout [body]
   {:status 200
    :headers {"Content-Type" "text/html"}
    :body (html [:html
                 [:head
-                 [:title title]
+                 [:title *title*]
                  (include-js "/js/jquery.js" "/js/app.js")]
                 [:body
                  [:div.header
-                  [:h1 title]]
+                  [:h1 *title*]]
                  [:div.content
                   body]
                  [:div.footer]]])})
@@ -45,8 +49,14 @@
                           (filter #(rec %) ks)))]
     (if (seq r) r "..")))
 
+(def *page-size* 25)
+
 (def album-key-precedence [:genre :artist :album :year])
-(defn albums-sorted [] (apply utils/sort-by-keys (models/albums) album-key-precedence))
+
+(defn albums-sorted [page]
+  (take *page-size*
+        (drop (* page *page-size*)
+              (apply utils/sort-by-keys (models/albums) album-key-precedence))))
 
 (defn album-title [album]
   (apply interposed-html album " - " album-key-precedence))
@@ -72,27 +82,32 @@
          (:tracks album))]
    [:div#audio-container]])
 
-(defn albums-index []
-  [:ul.albums
-   (map (fn [album]
-          [:li.album
-           [:a {:href (str "/album/" (:id album))}
-            (album-title album)]])
-        (albums-sorted))])
+(defn albums-index [page]
+  [:div
+   (when-not (= 0 page)
+     [:a {:href (str "/?page=" (dec page))} "PREVIOUS PAGE"])
+   [:ul.albums
+    (map (fn [album]
+           [:li.album
+            [:a {:href (str "/album/" (:id album))}
+             (album-title album)]])
+         (albums-sorted page))]
+   (when-not (empty? (albums-sorted (inc page)))
+     [:a {:href (str "/?page=" (inc page))} "NEXT PAGE"])])
 
 (defroutes routes
-  (GET "/" []
-       (layout "SEMIRA index" (albums-index)))
+  (GET "/" [page]
+       (let [page (if page (Integer/valueOf page) 0)]
+         (layout (albums-index page))))
   (GET "/album/:id" [id]
        (let [album (models/album-by-id id)]
-         (layout (apply str "SEMIRA album")
-                 (album-show album))))
+         (layout (album-show album))))
   (GET "/track/:id" [id]
        (let [track (models/track-by-id id)]
          {:status 200
           :headers {"Content-Type" "audio/ogg"}
           :body (stream/input track)})))
 
-(def app (-> routes (wrap-file "public") wrap-file-info))
+(def app (-> routes wrap-params (wrap-file "public") wrap-file-info))
 
 ;; (do (require 'ring.adapter.jetty) (ring.adapter.jetty/run-jetty (var app) {:port 8080}))
