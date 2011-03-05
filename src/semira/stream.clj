@@ -1,11 +1,17 @@
 (ns semira.stream
-  (:use [clojure.java.io :as io])
+  (:use [clojure.java.io :as io]
+        [semira.utils :as utils])
   (:import [java.io File FileInputStream PipedInputStream PipedOutputStream]))
 
-(def conversions (atom #{}))
+(def *cache-dir* "tmp")
+
+;; ensure cache directory exists
+(utils/mkdir-p *cache-dir*)
 
 (defn- cache-file [track]
-  (str "/tmp/semira-" (:id track)))
+  (str *cache-dir* File/separator (str "semira-" (:id track))))
+
+(def conversions ^{:private true} (atom #{}))
 
 (defn- convert [track]
   (let [decoder (condp re-matches (:path track)
