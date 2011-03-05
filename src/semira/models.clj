@@ -15,7 +15,7 @@
                            (spit file (pr-str (deref *albums*)))
                            file)))
 
-(defn albums [] (utils/sort-by-keys (deref *albums*) :artist :year :album))
+(defn albums [] (deref *albums*))
 
 (defn album-by-id [id]
   (first (filter #(= id (:id %))
@@ -27,9 +27,10 @@
 
 (defn update-album [album]
   (swap! *albums*
-         (fn [albums]
+         (fn [albums album]
            (conj (filter #(not= (:id album) (:id %)) albums)
-                 album))))
+                 album))
+         album))
 
 (defn normalize-album [album]
   (let [tracks (map #(merge album %) (:tracks album))
@@ -68,5 +69,6 @@
                                (re-matches #".+\.(mp3|m4a|flac|ogg)"
                                            (.getName %)))
                          (file-seq (File. "/home/remco/Music")))]
+      (prn file)
       (update-file file))
     (send-off-backup)))
