@@ -1,38 +1,35 @@
 (ns semira.models
-  (:use [semira.audio :as audio])
+  (:use [semira.audio :as audio]
+        [semira.utils :as utils])
   (:import [java.io File]))
 
-(def albums-container (atom []))
+(def *albums-file* "/tmp/semira.sexp")
 
-(defn albums [] @albums-container)
+(def *albums* (atom (try (read-string (slurp *albums-file*))
+                         (catch Exception _ []))))
 
-(defn- sha1
-  "Calculate SHA1 digest for given string."
-  [string]
-  (let [digest (java.security.MessageDigest/getInstance "SHA1")
-        string  (java.io.StringBufferInputStream. string)
-        output (java.security.DigestInputStream. string digest)]
-    (while (not= -1 (.read output)))
-    (apply str (map #(format "%02x" %)
-                    (.digest digest)))))
+(def backup-agent ^{:private true} (agent *albums-file*))
 
-(defn- sort-by-keys
-  "Sort coll of maps by value with ks defining precedence."
-  [coll & ks]
-  (sort-by (fn [val]
-             (vec (map #(get val %)
-                       ks)))
-           coll))
+(defn send-off-backup []
+  (send-off backup-agent (fn [file]
+                           (spit file (pr-str (deref *albums*)))
+                           file)))
+
+(defn albums [] (utils/sort-by-keys (deref *albums*) :artist :year :album))
+
+(defn album-by-id [id]
+  (first (filter #(= id (:id %))
+                 (deref *albums*))))
+
+(defn track-by-id [id]
+  (first (filter #(= id (:id %))
+                 (flatten (map :tracks (deref *albums*))))))
 
 (defn update-album [album]
-  (swap! albums-container
-         (fn [albums album]
-           (sort-by-keys (conj (filter #(not= (:id album)
-                                              (:id %))
-                                       albums)
-                               album)
-                         :artist :year :album))
-         album))
+  (swap! *albums*
+         (fn [albums]
+           (conj (filter #(not= (:id album) (:id %)) albums)
+                 album))))
 
 (defn normalize-album [album]
   (let [tracks (map #(merge album %) (:tracks album))
@@ -42,12 +39,12 @@
     (merge
      (select-keys (first tracks) common)
      {:id (:id album)
-      :tracks (vec (sort-by-keys (map #(apply dissoc % common)
-                                      tracks)
-                                 :track :path :title))})))
+      :tracks (vec (utils/sort-by-keys (map #(apply dissoc % common)
+                                            tracks)
+                                       :track :path :title))})))
 
 (defn update-track [track]
-  (let [id (sha1 (:dir track))
+  (let [id (utils/sha1 (:dir track))
         album (update-in (or (album-by-id id)
                              {:id id
                               :tracks []})
@@ -61,17 +58,9 @@
 
 (defn update-file [file]
   (update-track (merge (audio/info file)
-                       {:id (sha1 (.getPath file))
+                       {:id (utils/sha1 (.getPath file))
                         :dir (.getParent file)
                         :path (.getPath file)})))
-
-(defn album-by-id [id]
-  (first (filter #(= id (:id %))
-                 (albums))))
-
-(defn track-by-id [id]
-  (first (filter #(= id (:id %))
-                 (flatten (map :tracks (albums))))))
 
 (comment
   (do
@@ -80,4 +69,4 @@
                                            (.getName %)))
                          (file-seq (File. "/home/remco/Music")))]
       (update-file file))
-    nil))
+    (send-off-backup)))
