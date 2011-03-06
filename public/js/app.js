@@ -8,6 +8,7 @@ $(document).ready(function() {
 
       audio.src = this.getAttribute("href");
       audio.autoplay = "autoplay";
+      audio.controls = "controls";
       container.appendChild(audio);
       event.preventDefault();
     }

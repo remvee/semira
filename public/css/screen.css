@@ -1,0 +1,13 @@
+body { line-height: 1.5; margin: 2em; }
+div.header, div.footer { display: none; }
+
+ul.albums { margin: 1em 0; padding: 0; list-style: none; }
+
+h2.title span.album { font-style: italic; font-size: larger; }
+dl.meta dt { width: 6em; float: left; text-align: right; padding-right: 1em; }
+dl.meta dd { width: 20em; display: block; }
+ol.tracks { margin: 1em 0; padding: 0; list-style-position: inside; }
+ol.tracks li { padding: 2px 4px; }
+ol.tracks li:nth-child(odd) { background: #f8f8f8; }
+ol.tracks li:nth-child(even) { background: #e8e8e8; }
+ol.tracks li span.length { float: right; }
