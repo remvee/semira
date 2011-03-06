@@ -5,6 +5,8 @@
 
 (def *albums-file* "/tmp/semira.sexp")
 
+(def *page-size* 20)
+
 (def *albums* (atom (try (read-string (slurp *albums-file*))
                          (catch Exception _ []))))
 
@@ -15,7 +17,11 @@
                            (spit file (pr-str (deref *albums*)))
                            file)))
 
-(defn albums [] (deref *albums*))
+(defn albums [& [{:keys [page order] :or {page 0, order []}}]]
+  (take *page-size*
+        (drop (* page *page-size*)
+              (utils/sort-by-keys (deref *albums*)
+                                  order))))
 
 (defn album-by-id [id]
   (first (filter #(= id (:id %))
@@ -42,7 +48,7 @@
      {:id (:id album)
       :tracks (vec (utils/sort-by-keys (map #(apply dissoc % common)
                                             tracks)
-                                       :track :path :title))})))
+                                       [:track :path :title]))})))
 
 (defn update-track [track]
   (let [id (utils/sha1 (:dir track))

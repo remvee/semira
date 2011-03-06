@@ -15,7 +15,7 @@
 
 (defn sort-by-keys
   "Sort coll of maps by value with ks defining precedence."
-  [coll & ks]
+  [coll ks]
   (sort-by (fn [val] (vec (flatten (map #(get val %) ks)))) coll))
 
 (defn mkdir-p
