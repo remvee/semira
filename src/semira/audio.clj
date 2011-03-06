@@ -97,5 +97,5 @@
                          (map (fn [k]
                                 (let [fs (.getFields tag
                                                      (FieldKey/valueOf (.toUpperCase (name k))))]
-                                  [k (vec (map field-str fs))]))
+                                  [k (vec (filter #(not= "" %) (map field-str fs)))]))
                               fields)))))))
