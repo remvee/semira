@@ -61,7 +61,7 @@
    [:ol.tracks
     (map (fn [track]
            [:li.track
-            [:a {:href (str "/track/" (:id track))}
+            [:a {:href (str "/track/" (:id track) ".mp3")}
              (interposed-html track " / " [:artist :album :title])]
             " "
             [:span.length (int->time (:length track))]])
@@ -95,11 +95,23 @@
   (GET "/album/:id" [id]
        (let [album (models/album-by-id id)]
          (layout (album-show album))))
-  (GET "/track/:id" [id]
+  (GET "/track/:id.mp3" [id]
+       (let [track (models/track-by-id id)]
+         {:status 200
+          :headers {"Content-Type" "audio/mpeg"}
+          :body (stream/input track :mp3)}))
+  (GET "/track/:id.ogg" [id]
        (let [track (models/track-by-id id)]
          {:status 200
           :headers {"Content-Type" "audio/ogg"}
-          :body (stream/input track)})))
+          :body (stream/input track :ogg)}))
+  (GET "/scan" []
+       (future
+         (models/scan))
+       (Thread/sleep 2000)
+       {:status 307
+        :headers {"Location" "/"}
+        :body ""}))
 
 (def app (-> routes wrap-params (wrap-file "public") wrap-file-info))
 
