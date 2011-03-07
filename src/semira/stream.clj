@@ -8,38 +8,43 @@
 ;; ensure cache directory exists
 (utils/mkdir-p *cache-dir*)
 
-(defn- cache-file [track]
-  (str *cache-dir* File/separator (str "semira-" (:id track))))
+(defn- cache-file [track type]
+  (str *cache-dir* File/separator (str "semira-" (:id track) "." type)))
 
 (def conversions ^{:private true} (atom #{}))
 
-(defn- convert [track]
-  (let [decoder (condp re-matches (:path track)
+(defn- convert [track type]
+  (let [file (cache-file track type)
+        decoder (condp re-matches (:path track)
                   #".*\.flac" "flacdec"
                   #".*\.ogg"  "oggdemux ! vorbisdec"
                   #".*\.mp3"  "ffdemux_mp3 ! ffdec_mp3"
                   #".*\.m4a"  "ffdemux_mov_mp4_m4a_3gp_3g2_mj2 ! faad")
-        command ["gst-launch" "-q" "filesrc" "location=" (:path track)
-                 "!" decoder "!" "audioconvert" "!" "vorbisenc" "quality=-0.1" "!" "oggmux" "!"
-                 "filesink" "location=" (cache-file track)]
+        encoder (condp = type
+                    :mp3 ["lame preset=56" "!" "id3v2mux"]
+                    :ogg ["vorbisenc quality=-0.1" "!" "oggmux"])
+        command (flatten ["gst-launch" "-q" "filesrc" "location=" (:path track)
+                          "!" decoder "!" "audioconvert" "!" encoder "!"
+                          "filesink" "location=" file])
         process (-> (Runtime/getRuntime) (.exec (into-array command)))]
 
     ;; register running conversion
-    (swap! conversions conj (:id track))
+    (swap! conversions conj file)
 
     ;; wait for conversion to finish and deregister it
     (.start
      (Thread.
       (fn []
         (.waitFor process)
-        (swap! conversions disj (:id track))
+        (swap! conversions disj file)
         (when-not (= 0 (.exitValue process))
           (prn (format "ERROR: %s: %s"
                        command
                        (slurp (.getErrorStream process))))))))))
 
-(defn- live-input [track]
-  (let [pin (java.io.PipedInputStream.)
+(defn- live-input [track type]
+  (let [file (cache-file track type)
+        pin (java.io.PipedInputStream.)
         pout (java.io.PipedOutputStream. pin)]
     (.start
      (Thread.
@@ -47,14 +52,14 @@
         ;; wait for file to appear
         (loop [n 100]
           (when (and (pos? n)
-                     (not (-> (cache-file track) File. .canRead)))
+                     (not (-> file File. .canRead)))
             (Thread/sleep 100)
             (recur (dec n))))
 
         ;; read from file till conversion no longer running
-        (with-open [in (FileInputStream. (cache-file track))]
+        (with-open [in (FileInputStream. file)]
           (loop []
-            (when (@conversions (:id track))
+            (when (@conversions file)
               (if (pos? (.available in))
                 (io/copy in pout)
                 (Thread/sleep 100))
@@ -63,16 +68,17 @@
 
 (defn input
   "Return a input stream of the given track."
-  [track]
+  [track type]
   (locking input
-    (cond
-     (@conversions (:id track))
-     (live-input track)
+    (let [file (cache-file track type)]
+      (cond
+       (@conversions file)
+       (live-input track type)
 
-     (-> (cache-file track) File. .canRead)
-     (FileInputStream. (cache-file track))
+       (-> file File. .canRead)
+       (FileInputStream. file)
 
-     :else
-     (do
-       (convert track)
-       (live-input track)))))
+       :else
+       (do
+         (convert track type)
+         (live-input track type))))))
