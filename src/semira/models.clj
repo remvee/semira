@@ -69,12 +69,10 @@
                         :dir (.getParent file)
                         :path (.getPath file)})))
 
-(comment
-  (do
-    (doseq [file (filter #(and (.isFile %)
-                               (re-matches #".+\.(mp3|m4a|flac|ogg)"
-                                           (.getName %)))
-                         (file-seq (File. "/home/remco/Music")))]
-      (prn file)
-      (update-file file))
-    (send-off-backup)))
+(defn scan []
+  (doseq [file (filter #(and (.isFile %)
+                             (re-matches #".+\.(mp3|m4a|flac|ogg)"
+                                         (.getName %)))
+                       (file-seq (File. "/home/remco/Music")))]
+    (update-file file))
+  (send-off-backup))
