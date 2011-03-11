@@ -1,11 +1,11 @@
 (ns semira.web
-  (:use [semira.models :as models]
-        [semira.stream :as stream]
-        
-        [compojure.core :only [defroutes GET POST ANY]]
+  (:require [semira.models :as models]
+            [semira.stream :as stream])
+  (:use [compojure.core :only [defroutes GET POST ANY]]
         [ring.middleware.params :only [wrap-params]]
         [ring.middleware.file :only [wrap-file]]
         [ring.middleware.file-info :only [wrap-file-info]]
+        [remvee.ring.middleware.partial-content :only [wrap-partial-content]]
         
         [hiccup.core :only [html]]
         [hiccup.page-helpers :only [include-css include-js]])
@@ -38,6 +38,8 @@
    :body (html [:html
                 [:head
                  [:title *title*]
+                 [:meta {:name "viewport", :content "width=device-width, initial-scale=1, maximum-scale=1"}]
+
                  (include-js "/js/jquery.js" "/js/app.js")
                  (include-css "/css/screen.css")]
                 [:body
@@ -61,7 +63,9 @@
    [:ol.tracks
     (map (fn [track]
            [:li.track
-            [:a {:href (str "/track/" (:id track) ".mp3")}
+            [:a {:href (str "/track/" (:id track) ".mp3")
+                 :href-mp3 (str "/track/" (:id track) ".mp3")
+                 :href-ogg (str "/track/" (:id track) ".ogg")}
              (interposed-html track " / " [:artist :album :title])]
             " "
             [:span.length (int->time (:length track))]])
@@ -95,24 +99,23 @@
   (GET "/album/:id" [id]
        (let [album (models/album-by-id id)]
          (layout (album-show album))))
-  (GET "/track/:id.mp3" [id]
-       (let [track (models/track-by-id id)]
+  (GET "/track/:id.:ext" [id ext :as request]
+       (let [track (models/track-by-id id)
+             type ({"mp3" "audio/mpeg"
+                    "ogg" "audio/ogg"} ext)
+             in (stream/get track type)
+             len (stream/length track type)]
          {:status 200
-          :headers {"Content-Type" "audio/mpeg"}
-          :body (stream/input track :mp3)}))
-  (GET "/track/:id.ogg" [id]
-       (let [track (models/track-by-id id)]
-         {:status 200
-          :headers {"Content-Type" "audio/ogg"}
-          :body (stream/input track :ogg)}))
+          :headers (merge {"Content-Type" type}
+                          (when len
+                            {"Content-Length" (and len (str len))}))
+          :body in}))
   (GET "/scan" []
-       (future
-         (models/scan))
+       (future (models/scan))
        (Thread/sleep 2000)
        {:status 307
-        :headers {"Location" "/"}
-        :body ""}))
+        :headers {"Location" "/"}}))
 
-(def app (-> routes wrap-params (wrap-file "public") wrap-file-info))
+(def app (-> routes wrap-params (wrap-file "public") wrap-file-info wrap-partial-content))
 
 ;; (do (require 'ring.adapter.jetty) (ring.adapter.jetty/run-jetty (var app) {:port 8080}))
