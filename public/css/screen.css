@@ -1,13 +1,23 @@
-body { line-height: 1.5; margin: 2em; }
+body { line-height: 1.5; margin: 0; background: #ccc; font-family: Arial, Helvetica, sans-serif; font-size: 12px; }
+a { text-decoration: none; color: blue; }
 div.header, div.footer { display: none; }
 
-ul.albums { margin: 1em 0; padding: 0; list-style: none; }
+div.content { overflow: hidden; }
 
-h2.title span.album { font-style: italic; font-size: larger; }
-dl.meta dt { width: 6em; float: left; text-align: right; padding-right: 1em; }
+div.paging { margin: 5px; }
+div.paging .previous { float: left; } 
+div.paging .next { float: right; } 
+
+ul.albums { list-style: none; }
+ol.tracks { list-style-position: inside; }
+ul.albums, ol.tracks { clear: both; margin: 5px; padding: 0; border: 1px solid #aaa; background: #fff; border-radius: 5px; -moz-border-radius: 5px;}
+ul.albums li, ol.tracks li { border-bottom: 1px solid #ccc; padding: 5px 10px; overflow: hidden; position: relative; }
+
+h2 { margin: 0; padding: 5px; background: #000; color: #fff; }
+h2.title span.album { font-style: italic; }
+
+dl.meta { margin: 5px 10px; font-size: smaller; }
+dl.meta dt { width: 6em; float: left; padding-right: 1em; font-weight: bold; }
 dl.meta dd { width: 20em; display: block; }
-ol.tracks { margin: 1em 0; padding: 0; list-style-position: inside; }
-ol.tracks li { padding: 2px 4px; }
-ol.tracks li:nth-child(odd) { background: #f8f8f8; }
-ol.tracks li:nth-child(even) { background: #e8e8e8; }
-ol.tracks li span.length { float: right; }
+
+ol.tracks li .length { float: right; }
