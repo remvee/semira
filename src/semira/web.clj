@@ -30,6 +30,9 @@
                           (filter #(rec %) ks)))]
     (if (seq r) r "..")))
 
+(defn map->query-string [m]
+  (apply str (interpose "&" (map (fn [[k v]] (str (name k) "=" v)) m))))
+
 (def *title* "SEMIRA")
 
 (defn layout [body]
@@ -52,7 +55,7 @@
 (defn album-show [album]
   [:div.album
    [:h2.title
-    (interposed-html album " - " [:artist :album])]
+    (interposed-html album " ! " [:artist :album])]
    [:dl.meta
     (mapcat #(vec [[:dt {:class (name %)}
                     (name %)]
@@ -72,30 +75,35 @@
          (:tracks album))]
    [:div#audio-container]])
 
-(defn albums-index [page]
-  (let [ks [:genre :artist :album :year]
-        paging [:div.paging
+(def albums-index-keys [:genre :artist :album :year])
+(defn albums-index [albums & [{page :page, query :query :as params}]]
+  (let [paging [:div.paging
                 (if (= 0 page)
                   [:span.previous "&larr;"]
-                  [:a.previous {:href (str "/?page=" (dec page))} "&larr;"])
+                  [:a.previous {:href (str "/?" (map->query-string (assoc params :page (dec page))))} "&larr;"])
                 " "
-                (if (empty? (models/albums {:page (inc page)}))
+                (if (empty? (models/albums {:page (inc page) :query query}))
                   [:span.next "&rarr;"]
-                  [:a.next {:href (str "/?page=" (inc page))} "&rarr;"])]]
+                  [:a.next {:href (str "/?" (map->query-string (assoc params :page (inc page))))} "&rarr;"])]]
     [:div
      paging
      [:ul.albums
+      [:li.search
+       [:form {:method "get"}
+        [:input {:type "text", :name "query", :value query}]
+        [:button {:type "submit"} ".."]]]
       (map (fn [album]
              [:li.album
               [:a {:href (str "/album/" (:id album))}
-               (interposed-html album " - " ks)]])
-           (models/albums {:page page, :order ks}))]
+               (interposed-html album " - " albums-index-keys)]])
+           albums)]
      paging]))
 
 (defroutes routes
-  (GET "/" [page]
-       (let [page (if page (Integer/valueOf page) 0)]
-         (layout (albums-index page))))
+  (GET "/" [page query]
+       (let [page (if page (Integer/valueOf page) 0)
+             albums (models/albums {:page page, :query query, :order albums-index-keys})]
+         (layout (albums-index albums {:page page, :query query}))))
   (GET "/album/:id" [id]
        (let [album (models/album-by-id id)]
          (layout (album-show album))))

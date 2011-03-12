@@ -17,11 +17,17 @@
                            (spit file (pr-str (deref *albums*)))
                            file)))
 
-(defn albums [& [{:keys [page order] :or {page 0, order []}}]]
+(defn albums [& [{:keys [order page query] :or {order [], page 0}}]]
+  (prn query)
   (take *page-size*
         (drop (* page *page-size*)
-              (utils/sort-by-keys (deref *albums*)
-                                  order))))
+              (filter (fn [album]
+                        (or (nil? query)
+                            (= "" query)
+                            (not= -1 (.indexOf (.toUpperCase (str (vals album)))
+                                               (.toUpperCase query)))))
+                      (utils/sort-by-keys (deref *albums*)
+                                          order)))))
 
 (defn album-by-id [id]
   (first (filter #(= id (:id %))
