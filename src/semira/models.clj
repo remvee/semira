@@ -18,16 +18,16 @@
                            file)))
 
 (defn albums [& [{:keys [order page query] :or {order [], page 0}}]]
-  (prn query)
-  (take *page-size*
-        (drop (* page *page-size*)
-              (filter (fn [album]
-                        (or (nil? query)
-                            (= "" query)
-                            (not= -1 (.indexOf (.toUpperCase (str (vals album)))
-                                               (.toUpperCase query)))))
-                      (utils/sort-by-keys (deref *albums*)
-                                          order)))))
+  (let [query (and query (.toLowerCase query))]
+    (take *page-size*
+          (drop (* page *page-size*)
+                (filter (fn [album]
+                          (or (nil? query)
+                              (= "" query)
+                              (and (:doc album)
+                                   (not= -1 (.indexOf (:doc album) query)))))
+                        (utils/sort-by-keys (deref *albums*)
+                                            order))))))
 
 (defn album-by-id [id]
   (first (filter #(= id (:id %))
@@ -43,6 +43,22 @@
            (conj (filter #(not= (:id album) (:id %)) albums)
                  album))
          album))
+
+(defn doc-album [album]
+  (assoc album :doc (.toLowerCase
+                     (apply
+                      str
+                      (interpose
+                       " "
+                       (filter
+                        string?
+                        (flatten
+                         (letfn [(f [v]
+                                   (cond
+                                    (map? v) (f (vals v))
+                                    (sequential? v) (map f v)
+                                    :else v))]
+                           (f album)))))))))
 
 (defn normalize-album [album]
   (let [tracks (map #(merge album %) (:tracks album))
@@ -67,7 +83,7 @@
                                                      (:id %))
                                               tracks))
                                  track)))]
-    (update-album (normalize-album album))))
+    (update-album (doc-album (normalize-album album)))))
 
 (defn update-file [file]
   (update-track (merge (audio/info file)
