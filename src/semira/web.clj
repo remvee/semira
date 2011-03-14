@@ -55,7 +55,7 @@
 (defn album-show [album]
   [:div.album
    [:h2.title
-    (interposed-html album " ! " [:artist :album])]
+    (interposed-html album " - " [:artist :album])]
    [:dl.meta
     (mapcat #(vec [[:dt {:class (name %)}
                     (name %)]
@@ -79,19 +79,24 @@
 (defn albums-index [albums & [{page :page, query :query :as params}]]
   (let [paging [:div.paging
                 (if (= 0 page)
-                  [:span.previous "&larr;"]
-                  [:a.previous {:href (str "/?" (map->query-string (assoc params :page (dec page))))} "&larr;"])
+                  [:span.previous ""]
+                  [:a.previous {:href (str "/?" (map->query-string (assoc params :page (dec page))))}
+                   [:img {:src "/images/previous.png" :alt "&larr;"}]])
                 " "
                 (if (empty? (models/albums {:page (inc page) :query query}))
-                  [:span.next "&rarr;"]
-                  [:a.next {:href (str "/?" (map->query-string (assoc params :page (inc page))))} "&rarr;"])]]
+                  [:span.next ""]
+                  [:a.next {:href (str "/?" (map->query-string (assoc params :page (inc page))))}
+                   [:img {:src "/images/next.png" :alt "&rarr;"}]])]]
     [:div
      paging
      [:ul.albums
       [:li.search
        [:form {:method "get"}
-        [:input {:type "text", :name "query", :value query}]
-        [:button {:type "submit"} ".."]]]
+        [:div
+         [:span.input
+          [:input {:type "text", :name "query", :value query}]]
+         [:span.button
+          [:button {:type "submit"} "Go!"]]]]]
       (map (fn [album]
              [:li.album
               [:a {:href (str "/album/" (:id album))}

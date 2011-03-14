@@ -1,12 +1,17 @@
-body { line-height: 1.5; margin: 0; background: #ccc; font-family: Arial, Helvetica, sans-serif; font-size: 12px; }
+html { background: #ccc; }
+body { line-height: 1.5; margin: 0; font-family: Arial, Helvetica, sans-serif; font-size: 12px; }
 a { text-decoration: none; color: blue; }
+input, button { border-radius: 3px; -moz-border-radius: 3px; border: solid #aaa 1px; font-size: 12px; padding: 2px; }
+button { background: #ccc; padding: 2px 4px; }
+
 div.header, div.footer { display: none; }
 
 div.content { overflow: hidden; }
 
 div.paging { margin: 5px; }
-div.paging .previous { float: left; } 
-div.paging .next { float: right; } 
+div.paging img { border: none; }
+div.paging a.previous { float: left; display: block; margin: 8px 0px; width: 13px; height: 20px; }
+div.paging a.next { float: right; display: block; margin: 8px 0px; width: 13px; height: 20px; }
 
 ul.albums { list-style: none; }
 ol.tracks { list-style-position: inside; }
@@ -21,3 +26,9 @@ dl.meta dt { width: 6em; float: left; padding-right: 1em; font-weight: bold; }
 dl.meta dd { width: 20em; display: block; }
 
 ol.tracks li .length { float: right; }
+
+.search form { display: table; width: 100%; margin: 0; padding: 0; }
+.search form div { width: 100%; display: table-row; }
+.search form div span { display: table-cell; }
+.search form div span.input { width: 100%; padding-right: 4px; }
+.search form div input { width: 100%; }
