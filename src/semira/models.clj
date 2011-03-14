@@ -1,33 +1,36 @@
 (ns semira.models
   (:use [semira.audio :as audio]
-        [semira.utils :as utils])
-  (:import [java.io File]))
+        [semira.utils :as utils]
+        [clojure.java.io :as io])
+  (:import [java.io File FileInputStream FileOutputStream]))
 
 (def *albums-file* "/tmp/semira.sexp")
 
 (def *page-size* 20)
 
-(def *albums* (atom (try (read-string (slurp *albums-file*))
+(def *albums* (atom (try (binding [*in* (io/reader (FileInputStream. *albums-file*))]
+                           (read))
                          (catch Exception _ []))))
 
-(def backup-agent ^{:private true} (agent *albums-file*))
+(def backup-agent (agent *albums-file*))
 
 (defn send-off-backup []
   (send-off backup-agent (fn [file]
-                           (spit file (pr-str (deref *albums*)))
+                           (binding [*out* (io/writer (FileOutputStream. file))]
+                             (pr (deref *albums*)))
                            file)))
 
 (defn albums [& [{:keys [order page query] :or {order [], page 0}}]]
-  (let [query (and query (.toLowerCase query))]
+  (let [query (and query (.toLowerCase query))
+        f (if (or (nil? query) (= "" query))
+            (fn [_] true)
+            (fn [album]
+              (if-let [v (:doc album)]
+                (not= -1 (.indexOf v query)))))]
     (take *page-size*
           (drop (* page *page-size*)
-                (filter (fn [album]
-                          (or (nil? query)
-                              (= "" query)
-                              (and (:doc album)
-                                   (not= -1 (.indexOf (:doc album) query)))))
-                        (utils/sort-by-keys (deref *albums*)
-                                            order))))))
+                (filter f (utils/sort-by-keys (deref *albums*)
+                                              order))))))
 
 (defn album-by-id [id]
   (first (filter #(= id (:id %))
@@ -96,5 +99,6 @@
                              (re-matches #".+\.(mp3|m4a|flac|ogg)"
                                          (.getName %)))
                        (file-seq (File. "/home/remco/Music")))]
+    (prn file)
     (update-file file))
   (send-off-backup))
