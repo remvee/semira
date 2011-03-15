@@ -8,16 +8,20 @@
 
 (def *page-size* 20)
 
-(def *albums* (atom (try (binding [*in* (io/reader (FileInputStream. *albums-file*))]
-                           (read))
-                         (catch Exception _ []))))
+(def *albums* (atom (try (with-open [r (java.io.PushbackReader. (io/reader (FileInputStream. *albums-file*)))]
+                           (binding [*in* r]
+                             (read)))
+                         (catch Exception e
+                           (do (prn e)
+                               [])))))
 
 (def backup-agent (agent *albums-file*))
 
 (defn send-off-backup []
   (send-off backup-agent (fn [file]
-                           (binding [*out* (io/writer (FileOutputStream. file))]
-                             (pr (deref *albums*)))
+                           (with-open [w (io/writer (FileOutputStream. file))]
+                             (binding [*out* w]
+                               (pr (deref *albums*))))
                            file)))
 
 (defn albums [& [{:keys [order page query] :or {order [], page 0}}]]
@@ -48,20 +52,9 @@
          album))
 
 (defn doc-album [album]
-  (assoc album :doc (.toLowerCase
-                     (apply
-                      str
-                      (interpose
-                       " "
-                       (filter
-                        string?
-                        (flatten
-                         (letfn [(f [v]
-                                   (cond
-                                    (map? v) (f (vals v))
-                                    (sequential? v) (map f v)
-                                    :else v))]
-                           (f album)))))))))
+  (assoc album :doc (.toLowerCase (str (:artist album) " "
+                                       (:album album) " "
+                                       (:genre album)))))
 
 (defn normalize-album [album]
   (let [tracks (map #(merge album %) (:tracks album))
@@ -95,10 +88,12 @@
                         :path (.getPath file)})))
 
 (defn scan []
-  (doseq [file (filter #(and (.isFile %)
-                             (re-matches #".+\.(mp3|m4a|flac|ogg)"
-                                         (.getName %)))
-                       (file-seq (File. "/home/remco/Music")))]
-    (prn file)
-    (update-file file))
+  (let [before (System/currentTimeMillis)]
+    (doseq [file (filter #(and (.isFile %)
+                               (re-matches #".+\.(mp3|m4a|flac|ogg)"
+                                           (.getName %)))
+                         (file-seq (File. "/home/remco/Music")))]
+      (prn file)
+      (update-file file))
+    (println "scanned plenty of files in" (- (System/currentTimeMillis) before)))
   (send-off-backup))
