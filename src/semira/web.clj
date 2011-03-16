@@ -50,17 +50,17 @@
                   body]
                  [:div.footer]]])})
 
-(defn album-play-link [album]
+(defn album-play-link [album image]
   [:a {:href (str "/stream/album/" (:id album) ".mp3")
        :class "play"}
-   "&#x1D160;"])
+   [:img {:src image}]])
 
 (defn album-show [album]
   [:div.album
    [:h2.title
     (interposed-html album " - " [:artist :album])
     " "
-    (album-play-link album)]
+    (album-play-link album "/images/note-larger.png")]
    [:dl.meta
     (mapcat #(vec [[:dt {:class (name %)}
                     (name %)]
@@ -108,7 +108,7 @@
               [:a {:href (str "/album/" (:id album))}
                (interposed-html album " - " albums-index-keys)]
               " "
-              (album-play-link album)])
+              (album-play-link album "/images/note.png")])
            albums)]
      paging]))
 
