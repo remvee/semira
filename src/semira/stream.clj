@@ -81,9 +81,15 @@
           (io/copy in pout)))))
     pin))
 
-(defn get
-  "Return an input stream of type for the given track."
-  [track type]
+(defn- object-type [object & rest]
+  (cond (:tracks object) :album
+        (:path object)   :track))
+
+(defmulti get
+  "Return an input stream of given type for the given object."
+  object-type)
+
+(defmethod get :track [track type]
   (locking get
     (let [filename (cache-file track type)]
       (cond
@@ -92,15 +98,17 @@
 
        (-> filename File. .canRead)
        (FileInputStream. filename)
-       
+
        :else
        (do
          (convert track type)
          (live-input track type))))))
 
-(defn length
+(defmulti length
   "Return the length of the stream when already known, otherwise nil."
-  [track type]
+  object-type)
+
+(defmethod length :track [track type]
   (let [filename (cache-file track type)
         file (File. filename)]
     (and (not (@conversions filename)) (.canRead file) (.length file))))
