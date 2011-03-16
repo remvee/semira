@@ -37,7 +37,7 @@
 
 (defn layout [body]
   {:status 200
-   :headers {"Content-Type" "text/html"}
+   :headers {"Content-Type" "text/html; charset=UTF-8"}
    :body (html [:html
                 [:head
                  [:title *title*]
@@ -50,10 +50,17 @@
                   body]
                  [:div.footer]]])})
 
+(defn album-play-link [album]
+  [:a {:href (str "/stream/album/" (:id album) ".mp3")
+       :class "play"}
+   "&#x1D160;"])
+
 (defn album-show [album]
   [:div.album
    [:h2.title
-    (interposed-html album " - " [:artist :album])]
+    (interposed-html album " - " [:artist :album])
+    " "
+    (album-play-link album)]
    [:dl.meta
     (mapcat #(vec [[:dt {:class (name %)}
                     (name %)]
@@ -64,9 +71,9 @@
    [:ol.tracks
     (map (fn [track]
            [:li.track
-            [:a {:href (str "/track/" (:id track) ".mp3")
-                 :href-mp3 (str "/track/" (:id track) ".mp3")
-                 :href-ogg (str "/track/" (:id track) ".ogg")}
+            [:a {:href (str "/stream/track/" (:id track) ".mp3")
+                 :href-mp3 (str "/stream/track/" (:id track) ".mp3")
+                 :href-ogg (str "/stream/track/" (:id track) ".ogg")}
              (interposed-html track " / " [:artist :album :title])]
             " "
             [:span.length (int->time (:length track))]])
@@ -74,6 +81,7 @@
    [:div#audio-container]])
 
 (def albums-index-keys [:genre :artist :album :year])
+
 (defn albums-index [albums & [{page :page, query :query :as params}]]
   (let [paging [:div.paging
                 (if (= 0 page)
@@ -98,7 +106,9 @@
       (map (fn [album]
              [:li.album
               [:a {:href (str "/album/" (:id album))}
-               (interposed-html album " - " albums-index-keys)]])
+               (interposed-html album " - " albums-index-keys)]
+              " "
+              (album-play-link album)])
            albums)]
      paging]))
 
@@ -110,12 +120,14 @@
   (GET "/album/:id" [id]
        (let [album (models/album-by-id id)]
          (layout (album-show album))))
-  (GET "/track/:id.:ext" [id ext :as request]
-       (let [track (models/track-by-id id)
+  (GET "/stream/:model/:id.:ext" [model id ext :as request]
+       (let [object ((get {"track" models/track-by-id
+                           "album" models/album-by-id}
+                          model models/track-by-id) id)
              type ({"mp3" "audio/mpeg"
                     "ogg" "audio/ogg"} ext)
-             in (stream/get track type)
-             len (stream/length track type)]
+             in (stream/get object type)
+             len (stream/length object type)]
          {:status 200
           :headers (merge {"Content-Type" type}
                           (when len

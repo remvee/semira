@@ -17,6 +17,7 @@ ul.albums { list-style: none; }
 ol.tracks { list-style-position: inside; }
 ul.albums, ol.tracks { clear: both; margin: 5px; padding: 0; border: 1px solid #aaa; background: #fff; border-radius: 5px; -moz-border-radius: 5px;}
 ul.albums li, ol.tracks li { border-bottom: 1px solid #ccc; padding: 5px 10px; overflow: hidden; position: relative; }
+ul.albums li a.play, h2.title a.play { float: right; }
 
 h2 { margin: 0; padding: 5px; background: #000; color: #fff; }
 h2.title span.album { font-style: italic; }

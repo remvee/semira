@@ -55,31 +55,33 @@
 
 (defn- live-input [track type]
   (let [filename (cache-file track type)
-        pin (java.io.PipedInputStream.)
-        pout (java.io.PipedOutputStream. pin)]
+        pipe (PipedInputStream.)
+        out (PipedOutputStream. pipe)]
     (.start
      (Thread.
       (fn []
-        ;; wait for file to appear
-        (loop [n 100]
-          (when (and (pos? n)
-                     (not (-> filename File. .canRead)))
-            (Thread/sleep 100)
-            (recur (dec n))))
+        (try
+          (do
+            ;; wait for file to appear
+            (loop [n 100]
+              (when (and (pos? n)
+                         (not (-> filename File. .canRead)))
+                (Thread/sleep 100)
+                (recur (dec n))))
 
-        ;; read from file till conversion no longer running
-        (with-open [in (FileInputStream. filename)]
-          (loop []
-            (when (@conversions filename)
-              (do
-                (if (pos? (.available in))
-                  (io/copy in pout)
-                  (Thread/sleep 100))
-                (recur))))
+            ;; read from file till conversion no longer running
+            (with-open [in (FileInputStream. filename)]
+              (loop []
+                (when (@conversions filename)
+                  (if (pos? (.available in))
+                    (io/copy in out)
+                    (Thread/sleep 100))
+                  (recur)))
 
-          ;; read remainer of file
-          (io/copy in pout)))))
-    pin))
+              ;; read remainer of file
+              (io/copy in out)))
+          (finally (.close out))))))
+    pipe))
 
 (defn- object-type [object & rest]
   (cond (:tracks object) :album
@@ -104,6 +106,20 @@
          (convert track type)
          (live-input track type))))))
 
+(defmethod get :album [album type]
+  (let [pipe (PipedInputStream.)
+        out (PipedOutputStream. pipe)]
+    (.start
+     (Thread.
+      (fn []
+        (try
+          (doseq [track (:tracks album)]
+            (prn track)
+            (with-open [in (get track type)]
+              (io/copy in out)))
+          (finally (.close out))))))
+    pipe))
+
 (defmulti length
   "Return the length of the stream when already known, otherwise nil."
   object-type)
@@ -112,3 +128,7 @@
   (let [filename (cache-file track type)
         file (File. filename)]
     (and (not (@conversions filename)) (.canRead file) (.length file))))
+
+(defmethod length :album [album type]
+  (reduce #(when %1 (let [len (length %2 type)] (when len (+ %1 len))))
+          0 (:tracks album)))
