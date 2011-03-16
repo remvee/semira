@@ -22,7 +22,7 @@
 (def conversions ^{:private true} (atom #{}))
 
 (defn- convert [track type]
-  (let [file (cache-file track type)
+  (let [filename (cache-file track type)
         decoder (condp re-matches (:path track)
                   #".*\.flac" "flacdec"
                   #".*\.ogg"  "oggdemux ! vorbisdec"
@@ -36,25 +36,25 @@
                           decoder "!"
                           "audioconvert" "!"
                           encoder "!"
-                          "filesink" "location=" file])
+                          "filesink" "location=" filename])
         process (-> (Runtime/getRuntime) (.exec (into-array command)))]
 
     ;; register running conversion
-    (swap! conversions conj file)
+    (swap! conversions conj filename)
 
     ;; wait for conversion to finish and deregister it
     (.start
      (Thread.
       (fn []
         (.waitFor process)
-        (swap! conversions disj file)
+        (swap! conversions disj filename)
         (when-not (= 0 (.exitValue process))
-          (prn (format "ERROR: %s: %s"
-                       (apply str command)
-                       (slurp (.getErrorStream process))))))))))
+          (printf "ERROR: %s: %s"
+                  (apply str command)
+                  (slurp (.getErrorStream process)))))))))
 
 (defn- live-input [track type]
-  (let [file (cache-file track type)
+  (let [filename (cache-file track type)
         pin (java.io.PipedInputStream.)
         pout (java.io.PipedOutputStream. pin)]
     (.start
@@ -63,33 +63,35 @@
         ;; wait for file to appear
         (loop [n 100]
           (when (and (pos? n)
-                     (not (-> file File. .canRead)))
+                     (not (-> filename File. .canRead)))
             (Thread/sleep 100)
             (recur (dec n))))
 
         ;; read from file till conversion no longer running
-        (with-open [in (FileInputStream. file)]
+        (with-open [in (FileInputStream. filename)]
           (loop []
-            (when (or (@conversions file)
-                      (pos? (.available in)))
-              (if (pos? (.available in))
-                (io/copy in pout)
-                (do
-                  (Thread/sleep 100)))
-              (recur)))))))
+            (when (@conversions filename)
+              (do
+                (if (pos? (.available in))
+                  (io/copy in pout)
+                  (Thread/sleep 100))
+                (recur))))
+
+          ;; read remainer of file
+          (io/copy in pout)))))
     pin))
 
 (defn get
   "Return an input stream of type for the given track."
   [track type]
   (locking get
-    (let [file (cache-file track type)]
+    (let [filename (cache-file track type)]
       (cond
-       (@conversions file)
+       (@conversions filename)
        (live-input track type)
 
-       (-> file File. .canRead)
-       (FileInputStream. file)
+       (-> filename File. .canRead)
+       (FileInputStream. filename)
        
        :else
        (do
@@ -99,5 +101,6 @@
 (defn length
   "Return the length of the stream when already known, otherwise nil."
   [track type]
-  (let [file (File. (cache-file track type))]
-    (and (.canRead file) (.length file))))
+  (let [filename (cache-file track type)
+        file (File. filename)]
+    (and (not (@conversions filename)) (.canRead file) (.length file))))
