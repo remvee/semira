@@ -54,7 +54,8 @@
 (defn doc-album [album]
   (assoc album :doc (.toLowerCase (str (:artist album) " "
                                        (:album album) " "
-                                       (:genre album)))))
+                                       (:genre album) " "
+                                       (:year album)))))
 
 (defn normalize-album [album]
   (let [tracks (map #(merge album %) (:tracks album))
