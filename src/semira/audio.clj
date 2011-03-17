@@ -62,11 +62,13 @@
        (re-matches #"\d+" (first v))
        (Integer/valueOf (first v))))
 
-(defn translate-genres [v]
-  (and (first v)
-       (map #(if-let [[_ n] (re-matches #"\((\d+)\).*" %)]
-               (nth id3v1-genres (Integer/valueOf n))
-               %) v)))
+(defn translate-genres [vals]
+  (and (first vals)
+       (vec (map (fn [val]
+                   (if-let [[_ n] (re-matches #"\((\d+)\).*" val)]
+                     (nth id3v1-genres (Integer/valueOf n))
+                     val))
+                 vals))))
 
 (def field-fns ^{:private true}
   {:track       to-i
