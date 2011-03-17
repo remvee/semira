@@ -2,39 +2,40 @@
   (:use [semira.audio :as audio]
         [semira.utils :as utils]
         [clojure.java.io :as io])
-  (:import [java.io File FileInputStream FileOutputStream]))
+  (:import [java.io File FileInputStream FileOutputStream PushbackReader]))
 
 (def *albums-file* "/tmp/semira.sexp")
 
-(def *page-size* 20)
-
-(def *albums* (atom (try (with-open [r (java.io.PushbackReader. (io/reader (FileInputStream. *albums-file*)))]
-                           (binding [*in* r]
-                             (read)))
-                         (catch Exception e
-                           (do (prn e)
-                               [])))))
+(def *albums* (atom
+               (try
+                 (with-open [r (PushbackReader.
+                                (io/reader (FileInputStream.
+                                            *albums-file*)))]
+                   (binding [*in* r]
+                     (read)))
+                 (catch Exception e
+                   (do (prn e)
+                       [])))))
 
 (def backup-agent (agent *albums-file*))
 
 (defn send-off-backup []
   (send-off backup-agent (fn [file]
-                           (with-open [w (io/writer (FileOutputStream. file))]
+                           (with-open [w (io/writer (FileOutputStream.
+                                                     file))]
                              (binding [*out* w]
                                (pr (deref *albums*))))
                            file)))
 
-(defn albums [& [{:keys [order page query] :or {order [], page 0}}]]
+(defn albums [& [{:keys [order query] :or {order []}}]]
   (let [query (and query (.toLowerCase query))
         f (if (or (nil? query) (= "" query))
             (fn [_] true)
             (fn [album]
               (if-let [v (:doc album)]
                 (not= -1 (.indexOf v query)))))]
-    (take *page-size*
-          (drop (* page *page-size*)
-                (filter f (utils/sort-by-keys (deref *albums*)
-                                              order))))))
+    (filter f (utils/sort-by-keys (deref *albums*)
+                                  order))))
 
 (defn album-by-id [id]
   (first (filter #(= id (:id %))

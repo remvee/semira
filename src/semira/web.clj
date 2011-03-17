@@ -33,6 +33,11 @@
 (defn map->query-string [m]
   (apply str (interpose "&" (map (fn [[k v]] (str (name k) "=" v)) m))))
 
+(def *page-size* 20)
+(defn take-page [coll page]
+  (take *page-size*
+        (drop (* page *page-size*) coll)))
+
 (def *title* "SEMIRA")
 
 (defn layout [body & [{:keys [title]}]]
@@ -95,7 +100,7 @@
                    [:a.previous {:href (str "/?" (map->query-string (assoc params :page (dec page))))}
                     [:img {:src "/images/previous.png" :alt "&larr;"}]])
                  " "
-                 (if (empty? (models/albums {:page (inc page) :query query}))
+                 (if (empty? (take-page albums (inc page)))
                    [:span.next ""]
                    [:a.next {:href (str "/?" (map->query-string (assoc params :page (inc page))))}
                     [:img {:src "/images/next.png" :alt "&rarr;"}]])]]
@@ -115,13 +120,13 @@
                 (interposed-html album " - " albums-index-keys)]
                " "
                (album-play-link album "/images/note.png")])
-            albums)]
+            (take-page albums page))]
       paging])))
 
 (defroutes routes
   (GET "/" [page query]
        (let [page (if page (Integer/valueOf page) 0)
-             albums (models/albums {:page page, :query query, :order albums-index-keys})]
+             albums (models/albums {:query query, :order albums-index-keys})]
          (albums-index albums {:page page, :query query})))
   (GET "/album/:id" [id]
        (let [album (models/album-by-id id)]
