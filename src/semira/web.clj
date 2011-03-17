@@ -48,25 +48,22 @@
                  [:title (if title (str *title* " / " title) *title*)]
                  [:meta {:name "viewport", :content "width=device-width, initial-scale=1, maximum-scale=1"}]
                  (include-css "/css/screen.css")]
-                [:body
-                 [:div.header
-                  [:h1 [:a {:href "/"} *title*]]]
-                 [:div.content
-                  body]
-                 [:div.footer]]])})
+                [:body body]])})
 
 (defn album-play-link [album image]
   [:a {:href (str "/stream/album/" (:id album) ".mp3")
        :class "play"}
-   [:img {:src image}]])
+   [:img {:src image :alt "&#x1D160;"}]])
 
 (defn album-show [album]
   (layout
    [:div.album
-    [:h2.title
-     (interposed-html album " - " [:artist :album])
-     " "
-     (album-play-link album "/images/note-larger.png")]
+    [:div.header
+     (album-play-link album "/images/note-larger.png")
+     (when (:artist album)
+       [:h2.artist (h (:artist album))])
+     (when (:album album)
+       [:h3.album (h (:album album))])]
     [:dl.meta
      (mapcat #(vec [[:dt {:class (name %)}
                      (name %)]
@@ -94,26 +91,26 @@
 
 (defn albums-index [albums & [{page :page, query :query :as params}]]
   (layout
-   (let [paging [:div.paging
-                 (if (= 0 page)
-                   [:span.previous ""]
-                   [:a.previous {:href (str "/?" (map->query-string (assoc params :page (dec page))))}
-                    [:img {:src "/images/previous.png" :alt "&larr;"}]])
-                 " "
-                 (if (empty? (take-page albums (inc page)))
-                   [:span.next ""]
-                   [:a.next {:href (str "/?" (map->query-string (assoc params :page (inc page))))}
-                    [:img {:src "/images/next.png" :alt "&rarr;"}]])]]
+   (let [navigation [:div.navigation
+                     [:form {:method "get"}
+                      [:div
+                       [:span.previous
+                        (if (= 0 page)
+                          ""
+                          [:a {:href (str "/?" (map->query-string (assoc params :page (dec page))))}
+                           [:img {:src "/images/previous.png" :alt "&larr;"}]])]
+                       [:span.input
+                        [:input {:type "text", :name "query", :value query}]]
+                       [:span.button
+                        [:button {:type "submit"} "Go!"]]
+                       [:span.next
+                        (if (empty? (take-page albums (inc page)))
+                          ""
+                          [:a.next {:href (str "/?" (map->query-string (assoc params :page (inc page))))}
+                           [:img {:src "/images/next.png" :alt "&rarr;"}]])]]]]]
      [:div
-      paging
+      navigation
       [:ul.albums
-       [:li.search
-        [:form {:method "get"}
-         [:div
-          [:span.input
-           [:input {:type "text", :name "query", :value query}]]
-          [:span.button
-           [:button {:type "submit"} "Go!"]]]]]
        (map (fn [album]
               [:li.album
                [:a {:href (str "/album/" (:id album))}
@@ -121,7 +118,7 @@
                " "
                (album-play-link album "/images/note.png")])
             (take-page albums page))]
-      paging])))
+      navigation])))
 
 (defroutes routes
   (GET "/" [page query]

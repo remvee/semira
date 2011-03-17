@@ -5,25 +5,22 @@ input, button { border-radius: 3px; -moz-border-radius: 3px; border: solid #aaa 
 button { background: #ccc; padding: 2px 4px; }
 img { border: none; }
 
-div.header, div.footer { display: none; }
+a.play { float: right; font-size: 14px; }
 
-div.content { overflow: hidden; }
-
-div.paging { margin: 5px; }
-div.paging img { border: none; }
-div.paging a.previous { float: left; display: block; margin: 8px 0px; width: 13px; height: 20px; }
-div.paging a.next { float: right; display: block; margin: 8px 0px; width: 13px; height: 20px; }
+div.header { margin: 0; padding: 5px 8px; background: #000; color: #fff; }
+div.header a.play { font-size: 18px; font-weight: bold; }
+div.header a.play img { padding: 2px 0; }
 
 ul.albums { list-style: none; }
-ol.tracks { list-style-position: inside; }
 ul.albums, ol.tracks { clear: both; margin: 5px; padding: 0; border: 1px solid #aaa; background: #fff; border-radius: 5px; -moz-border-radius: 5px;}
 ul.albums li, ol.tracks li { border-bottom: 1px solid #ccc; padding: 5px 10px; overflow: hidden; position: relative; }
-ul.albums li a.play, h2.title a.play { float: right; }
 ul.albums li a.play img { padding: 3px 0; }
-h2.title a.play img { padding: 6px 0; }
+ul.albums li span.genre, ul.albums li span.year { font-size: smaller; }
+ul.albums li span.album { font-style: italic; }
 
-h2 { margin: 0; padding: 5px; background: #000; color: #fff; }
-h2.title span.album { font-style: italic; }
+h2.artist { margin: 0; padding: 0; font-size: 16px; }
+h3.album { margin: 0; padding: 0; font-size: 16px; font-style: italic; }
+ol.tracks { list-style-position: inside; }
 
 dl.meta { margin: 5px 10px; font-size: smaller; }
 dl.meta dt { width: 6em; float: left; padding-right: 1em; font-weight: bold; }
@@ -31,8 +28,11 @@ dl.meta dd { width: 20em; display: block; }
 
 ol.tracks li .length { float: right; }
 
-.search form { display: table; width: 100%; margin: 0; padding: 0; }
-.search form div { width: 100%; display: table-row; }
-.search form div span { display: table-cell; }
-.search form div span.input { width: 100%; padding-right: 4px; }
-.search form div input { width: 100%; }
+div.navigation { margin: 0; padding: 8px; background: #000; }
+div.navigation form { display: table; margin: 0; padding: 0; width: 100%; }
+div.navigation form div { display: table-row; }
+div.navigation form div span { display: table-cell; vertical-align: middle; }
+div.navigation form div span.input { width: 100%; padding-right: 4px; }
+div.navigation form div span.previous { padding-right: 8px; }
+div.navigation form div span.next { padding-left: 8px; }
+div.navigation form div input { width: 100%; }
