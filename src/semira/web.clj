@@ -35,12 +35,12 @@
 
 (def *title* "SEMIRA")
 
-(defn layout [body]
+(defn layout [body & [{:keys [title]}]]
   {:status 200
    :headers {"Content-Type" "text/html; charset=UTF-8"}
    :body (html [:html
                 [:head
-                 [:title *title*]
+                 [:title (if title (str *title* " / " title) *title*)]
                  [:meta {:name "viewport", :content "width=device-width, initial-scale=1, maximum-scale=1"}]
                  (include-css "/css/screen.css")]
                 [:body
@@ -56,70 +56,76 @@
    [:img {:src image}]])
 
 (defn album-show [album]
-  [:div.album
-   [:h2.title
-    (interposed-html album " - " [:artist :album])
-    " "
-    (album-play-link album "/images/note-larger.png")]
-   [:dl.meta
-    (mapcat #(vec [[:dt {:class (name %)}
-                    (name %)]
-                   [:dd {:class (name %)}
-                    (h (album %))]])
-            (filter #(album %)
-                    [:composer :conductor :producer :remixer :year :genre :encoding]))]
-   [:ol.tracks
-    (map (fn [track]
-           [:li.track
-            [:a {:href (str "/stream/track/" (:id track) ".mp3")
-                 :href-mp3 (str "/stream/track/" (:id track) ".mp3")
-                 :href-ogg (str "/stream/track/" (:id track) ".ogg")}
-             (interposed-html track " / " [:artist :album :title])]
-            " "
-            [:span.length (int->time (:length track))]])
-         (:tracks album))]
-   [:div#audio-container]])
+  (layout
+   [:div.album
+    [:h2.title
+     (interposed-html album " - " [:artist :album])
+     " "
+     (album-play-link album "/images/note-larger.png")]
+    [:dl.meta
+     (mapcat #(vec [[:dt {:class (name %)}
+                     (name %)]
+                    [:dd {:class (name %)}
+                     (h (album %))]])
+             (filter #(album %)
+                     [:composer :conductor :producer :remixer :year :genre :encoding]))]
+    [:ol.tracks
+     (map (fn [track]
+            [:li.track
+             [:a {:href (str "/stream/track/" (:id track) ".mp3")
+                  :href-mp3 (str "/stream/track/" (:id track) ".mp3")
+                  :href-ogg (str "/stream/track/" (:id track) ".ogg")}
+              (interposed-html track " / " [:artist :album :title])]
+             " "
+             [:span.length (int->time (:length track))]])
+          (:tracks album))]
+    [:div#audio-container]]
+   {:title (apply str
+                  (interpose " - " (flatten (filter identity
+                                                    (map album
+                                                         [:artist :album :year])))))}))
 
 (def albums-index-keys [:genre :artist :album :year])
 
 (defn albums-index [albums & [{page :page, query :query :as params}]]
-  (let [paging [:div.paging
-                (if (= 0 page)
-                  [:span.previous ""]
-                  [:a.previous {:href (str "/?" (map->query-string (assoc params :page (dec page))))}
-                   [:img {:src "/images/previous.png" :alt "&larr;"}]])
-                " "
-                (if (empty? (models/albums {:page (inc page) :query query}))
-                  [:span.next ""]
-                  [:a.next {:href (str "/?" (map->query-string (assoc params :page (inc page))))}
-                   [:img {:src "/images/next.png" :alt "&rarr;"}]])]]
-    [:div
-     paging
-     [:ul.albums
-      [:li.search
-       [:form {:method "get"}
-        [:div
-         [:span.input
-          [:input {:type "text", :name "query", :value query}]]
-         [:span.button
-          [:button {:type "submit"} "Go!"]]]]]
-      (map (fn [album]
-             [:li.album
-              [:a {:href (str "/album/" (:id album))}
-               (interposed-html album " - " albums-index-keys)]
-              " "
-              (album-play-link album "/images/note.png")])
-           albums)]
-     paging]))
+  (layout
+   (let [paging [:div.paging
+                 (if (= 0 page)
+                   [:span.previous ""]
+                   [:a.previous {:href (str "/?" (map->query-string (assoc params :page (dec page))))}
+                    [:img {:src "/images/previous.png" :alt "&larr;"}]])
+                 " "
+                 (if (empty? (models/albums {:page (inc page) :query query}))
+                   [:span.next ""]
+                   [:a.next {:href (str "/?" (map->query-string (assoc params :page (inc page))))}
+                    [:img {:src "/images/next.png" :alt "&rarr;"}]])]]
+     [:div
+      paging
+      [:ul.albums
+       [:li.search
+        [:form {:method "get"}
+         [:div
+          [:span.input
+           [:input {:type "text", :name "query", :value query}]]
+          [:span.button
+           [:button {:type "submit"} "Go!"]]]]]
+       (map (fn [album]
+              [:li.album
+               [:a {:href (str "/album/" (:id album))}
+                (interposed-html album " - " albums-index-keys)]
+               " "
+               (album-play-link album "/images/note.png")])
+            albums)]
+      paging])))
 
 (defroutes routes
   (GET "/" [page query]
        (let [page (if page (Integer/valueOf page) 0)
              albums (models/albums {:page page, :query query, :order albums-index-keys})]
-         (layout (albums-index albums {:page page, :query query}))))
+         (albums-index albums {:page page, :query query})))
   (GET "/album/:id" [id]
        (let [album (models/album-by-id id)]
-         (layout (album-show album))))
+         (album-show album)))
   (GET "/stream/:model/:id.:ext" [model id ext :as request]
        (let [object ((get {"track" models/track-by-id
                            "album" models/album-by-id}
