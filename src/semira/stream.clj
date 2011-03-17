@@ -6,7 +6,7 @@
   (:import [java.io File FileInputStream PipedInputStream PipedOutputStream]))
 
 (def *cache-dir* "/tmp/semira")
-(def *bitrate* 56)
+(def *bitrate* 80)
 
 ;; ensure cache directory exists
 (utils/mkdir-p *cache-dir*)
@@ -29,8 +29,8 @@
                   #".*\.mp3"  "ffdemux_mp3 ! ffdec_mp3"
                   #".*\.m4a"  "ffdemux_mov_mp4_m4a_3gp_3g2_mj2 ! faad")
         encoder (condp = type
-                    "audio/mpeg" [(str "lame bitrate=" *bitrate*) "!" "xingmux" "!" "id3mux"]
-                    "audio/ogg" [(str "vorbisenc bitrate=" *bitrate*) "!" "oggmux"])
+                    "audio/mpeg" ["lame" "mode=1" (str "bitrate=" *bitrate*) "!" "xingmux" "!" "id3mux"]
+                    "audio/ogg" ["vorbisenc" (str "bitrate=" (* *bitrate* 1000)) ")!" "oggmux"])
         command (flatten ["gst-launch" "-q"
                           "filesrc" "location=" (:path track) "!"
                           decoder "!"
