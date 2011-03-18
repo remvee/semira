@@ -28,11 +28,11 @@ dl.meta dd { width: 20em; display: block; }
 
 ol.tracks li .length { float: right; }
 
-div.navigation { margin: 0; padding: 8px; background: #000; }
-div.navigation form { display: table; margin: 0; padding: 0; width: 100%; }
-div.navigation form div { display: table-row; }
-div.navigation form div span { display: table-cell; vertical-align: middle; }
-div.navigation form div span.input { width: 100%; padding-right: 4px; }
-div.navigation form div span.previous { padding-right: 8px; }
-div.navigation form div span.next { padding-left: 8px; }
-div.navigation form div input { width: 100%; }
+.pagination .previous { float: left; }
+.pagination .next { float: right; }
+
+.search { display: table; margin: 0; padding: 0; width: 100%; }
+.search div { display: table-row; }
+.search div span { display: table-cell; vertical-align: middle; }
+.search div span.input { width: 100%; padding-right: 4px; }
+.search div input { width: 100%; }

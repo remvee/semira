@@ -91,34 +91,39 @@
 
 (defn albums-index [albums & [{page :page, query :query :as params}]]
   (layout
-   (let [navigation [:div.navigation
-                     [:form {:method "get"}
-                      [:div
+   (let [pagination (if (or (> page 0)
+                            (not (empty? (take-page albums (inc page)))))
+                      [:div.pagination
                        [:span.previous
                         (if (= 0 page)
                           ""
                           [:a {:href (str "/?" (map->query-string (assoc params :page (dec page))))}
                            [:img {:src "/images/previous.png" :alt "&larr;"}]])]
-                       [:span.input
-                        [:input {:type "text", :name "query", :value query}]]
-                       [:span.button
-                        [:button {:type "submit"} "Go!"]]
                        [:span.next
                         (if (empty? (take-page albums (inc page)))
                           ""
                           [:a.next {:href (str "/?" (map->query-string (assoc params :page (inc page))))}
-                           [:img {:src "/images/next.png" :alt "&rarr;"}]])]]]]]
+                           [:img {:src "/images/next.png" :alt "&rarr;"}]])]])]
+     
      [:div
-      navigation
+      [:div.header
+       [:form {:method "get" :class "search"}
+        [:div
+         [:span.input
+          [:input {:type "text", :name "query", :value query}]]
+         [:span.button
+          [:button {:type "submit"} "Go!"]]]]]
+
       [:ul.albums
+       (when pagination [:li.pagination pagination])
        (map (fn [album]
               [:li.album
                [:a {:href (str "/album/" (:id album))}
                 (interposed-html album " - " albums-index-keys)]
                " "
                (album-play-link album "/images/note.png")])
-            (take-page albums page))]
-      navigation])))
+            (take-page albums page))
+       (when pagination [:li.pagination pagination])]])))
 
 (defroutes routes
   (GET "/" [page query]
