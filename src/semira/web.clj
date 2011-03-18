@@ -7,7 +7,7 @@
         [ring.middleware.file-info :only [wrap-file-info]]
         [remvee.ring.middleware.partial-content :only [wrap-partial-content]]
         
-        [hiccup.core :only [html]]
+        [hiccup.core :only [html escape-html]]
         [hiccup.page-helpers :only [include-css include-js]])
   (:import [java.io File]))
 
@@ -21,8 +21,8 @@
                :else            (format ":%02d" seconds)))))
 
 (defmulti h class)
-(defmethod h java.util.List [val] (apply str (interpose ", " val)))
-(defmethod h Object [val] (str val))
+(defmethod h java.util.List [val] (escape-html (apply str (interpose ", " val))))
+(defmethod h :default [val] (escape-html (str val)))
 
 (defn interposed-html [rec sep ks]
   (let [r (interpose sep
@@ -45,7 +45,7 @@
    :headers {"Content-Type" "text/html; charset=UTF-8"}
    :body (html [:html
                 [:head
-                 [:title (if title (str *title* " / " title) *title*)]
+                 [:title (h (if title (str *title* " / " title) *title*))]
                  [:meta {:name "viewport", :content "width=device-width, initial-scale=1, maximum-scale=1"}]
                  (include-css "/css/screen.css")]
                 [:body body]])})
@@ -58,6 +58,7 @@
 (defn album-show [album]
   (layout
    [:div.album
+    (str "<!-- " (:dir album) " -->")
     [:div.header
      (album-play-link album "/images/note-larger.png")
      (when (:artist album)
@@ -66,7 +67,7 @@
        [:h3.album (h (:album album))])]
     [:dl.meta
      (mapcat #(vec [[:dt {:class (name %)}
-                     (name %)]
+                     (h (name %))]
                     [:dd {:class (name %)}
                      (h (album %))]])
              (filter #(album %)
@@ -74,9 +75,7 @@
     [:ol.tracks
      (map (fn [track]
             [:li.track
-             [:a {:href (str "/stream/track/" (:id track) ".mp3")
-                  :href-mp3 (str "/stream/track/" (:id track) ".mp3")
-                  :href-ogg (str "/stream/track/" (:id track) ".ogg")}
+             [:a {:href (str "/stream/track/" (:id track) ".mp3")}
               (interposed-html track " / " [:artist :album :title])]
              " "
              [:span.length (int->time (:length track))]])
