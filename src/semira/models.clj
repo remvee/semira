@@ -45,20 +45,16 @@
   (first (filter #(= id (:id %))
                  (flatten (map :tracks (deref *albums*))))))
 
-(defn update-album [album]
-  (swap! *albums*
-         (fn [albums album]
-           (conj (filter #(not= (:id album) (:id %)) albums)
-                 album))
-         album))
+(defn- update-album [albums album]
+)
 
-(defn doc-album [album]
+(defn- doc-album [album]
   (assoc album :doc (.toLowerCase (str (:artist album) " "
                                        (:album album) " "
                                        (:genre album) " "
                                        (:year album)))))
 
-(defn normalize-album [album]
+(defn- normalize-album [album]
   (let [tracks (map #(merge album %) (:tracks album))
         common (filter #(and (not= :id %)
                              (apply = (map % tracks)))
@@ -70,24 +66,27 @@
                                             tracks)
                                        [:track :path :title]))})))
 
-(defn update-track [track]
+(defn update-track [albums track]
   (let [id (utils/sha1 (:dir track))
-        album (update-in (or (album-by-id id)
-                             {:id id
-                              :tracks []})
-                         [:tracks]
-                         (fn [tracks]
-                           (conj (vec (filter #(not= (:id track)
-                                                     (:id %))
-                                              tracks))
-                                 track)))]
-    (update-album (doc-album (normalize-album album)))))
+        album (doc-album
+               (normalize-album
+                (update-in (or (first (filter #(= id (:id %)) albums))
+                               {:id id
+                                :tracks []})
+                           [:tracks]
+                           (fn [tracks]
+                             (conj (vec (filter #(not= (:id track)
+                                                       (:id %))
+                                                tracks))
+                                   track)))))]
+    (conj (filter #(not= (:id album) (:id %)) albums) album)))
 
-(defn update-file [file]
-  (update-track (merge (audio/info file)
-                       {:id (utils/sha1 (.getPath file))
-                        :dir (.getParent file)
-                        :path (.getPath file)})))
+(defn update-file! [file]
+  (swap! *albums* update-track
+         (merge (audio/info file)
+                {:id (utils/sha1 (.getPath file))
+                 :dir (.getParent file)
+                 :path (.getPath file)})))
 
 (defn scan []
   (let [before (System/currentTimeMillis)]
@@ -96,6 +95,6 @@
                                            (.getName %)))
                          (file-seq (File. "/home/remco/Music")))]
       (prn file)
-      (update-file file))
+      (update-file! file))
     (println "scanned plenty of files in" (- (System/currentTimeMillis) before)))
   (send-off-backup))
