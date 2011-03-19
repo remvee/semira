@@ -34,8 +34,8 @@
             (fn [album]
               (if-let [v (:doc album)]
                 (not= -1 (.indexOf v query)))))]
-    (filter f (utils/sort-by-keys (deref *albums*)
-                                  order))))
+    (utils/sort-by-keys (filter f (deref *albums*))
+                        order)))
 
 (defn album-by-id [id]
   (first (filter #(= id (:id %))
