@@ -19,7 +19,7 @@
   (sort-by (fn [val] (vec (flatten (map #(get val %) ks)))) coll))
 
 (defn mkdir-p
-  "create directory dir, including all parent directories when they do not exist yet."
+  "Create directory dir, including all parent directories when they do not exist yet."
   [dir]
   (let [parts (string/split dir
                             (Pattern/compile (Pattern/quote File/separator)))]
