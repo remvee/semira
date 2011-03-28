@@ -45,9 +45,6 @@
   (first (filter #(= id (:id %))
                  (flatten (map :tracks (deref *albums*))))))
 
-(defn- update-album [albums album]
-)
-
 (defn- doc-album [album]
   (assoc album :doc (.toLowerCase (str (:artist album) " "
                                        (:album album) " "
