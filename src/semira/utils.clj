@@ -25,5 +25,5 @@
                             (Pattern/compile (Pattern/quote File/separator)))]
     (doseq [path (rest (reductions #(str %1 File/separator %2) parts))]
       (when-not (-> path File. .isDirectory)
-        (prn (-> path File. .mkdir)))))
+        (-> path File. .mkdir))))
   (File. dir))

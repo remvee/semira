@@ -114,7 +114,6 @@
       (fn []
         (try
           (doseq [track (:tracks album)]
-            (prn track)
             (with-open [in (get track type)]
               (io/copy in out)))
           (finally (.close out))))))
