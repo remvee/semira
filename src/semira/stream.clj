@@ -3,7 +3,7 @@
   (:require [clojure.java.io :as io]
             [clojure.string :as string]
             [semira.utils :as utils])
-  (:import [java.io File FileInputStream PipedInputStream PipedOutputStream]))
+  (:import [java.io File FileInputStream PipedInputStream PipedOutputStream IOException]))
 
 (def *cache-dir* "/tmp/semira")
 (def *bitrate* 80)
@@ -80,6 +80,7 @@
 
               ;; read remainer of file
               (io/copy in out)))
+          (catch IOException _) ; pipe closed
           (finally (.close out))))))
     pipe))
 
@@ -116,6 +117,7 @@
           (doseq [track (:tracks album)]
             (with-open [in (get track type)]
               (io/copy in out)))
+          (catch IOException _) ; pipe closed
           (finally (.close out))))))
     pipe))
 
