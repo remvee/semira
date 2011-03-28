@@ -76,7 +76,7 @@
                                                        (:id %))
                                                 tracks))
                                    track)))))]
-    (conj (filter #(not= (:id album) (:id %)) albums) album)))
+    (conj (vec (filter #(not= (:id album) (:id %)) albums)) album)))
 
 (defn update-file! [file]
   (swap! *albums* update-track
