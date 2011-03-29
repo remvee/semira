@@ -1,6 +1,7 @@
 (ns semira.web
   (:require [semira.models :as models]
-            [semira.stream :as stream])
+            [semira.stream :as stream]
+            [semira.utils  :as utils])
   (:use [compojure.core :only [defroutes GET POST ANY]]
         [ring.middleware.params :only [wrap-params]]
         [ring.middleware.file :only [wrap-file]]
@@ -58,7 +59,7 @@
 (defn album-show [album]
   (layout
    [:div.album
-    (str "<!-- " (:dir album) " -->")
+    (str "<!-- " (:dir album) " @ " (:mtime album) " -->")
     [:div.header
      (album-play-link album "/images/note-larger.png")
      (when (:artist album)
@@ -96,12 +97,12 @@
                        [:span.previous
                         (if (= 0 page)
                           ""
-                          [:a {:href (str "/?" (map->query-string (assoc params :page (dec page))))}
+                          [:a {:href (str "?" (map->query-string (assoc params :page (dec page))))}
                            [:img {:src "/images/previous.png" :alt "&larr;"}]])]
                        [:span.next
                         (if (empty? (take-page albums (inc page)))
                           ""
-                          [:a.next {:href (str "/?" (map->query-string (assoc params :page (inc page))))}
+                          [:a.next {:href (str "?" (map->query-string (assoc params :page (inc page))))}
                            [:img {:src "/images/next.png" :alt "&rarr;"}]])]])]
      
      [:div
@@ -126,12 +127,18 @@
 
 (defroutes routes
   (GET "/" [page query]
-       (let [page (if page (Integer/valueOf page) 0)
-             albums (models/albums {:query query, :order albums-index-keys})]
-         (albums-index albums {:page page, :query query})))
+       (albums-index
+        (utils/sort-by-keys (models/albums {:query query})
+                            albums-index-keys)
+        {:page (if page (Integer/valueOf page) 0)
+         :query query}))
+  (GET "/new" [page query]
+       (albums-index
+        (reverse (sort-by :mtime (models/albums {:query query})))
+        {:page (if page (Integer/valueOf page) 0)
+         :query query}))
   (GET "/album/:id" [id]
-       (let [album (models/album-by-id id)]
-         (album-show album)))
+       (album-show (models/album-by-id id)))
   (GET "/stream/:model/:id.:ext" [model id ext :as request]
        (let [object ((get {"track" models/track-by-id
                            "album" models/album-by-id}

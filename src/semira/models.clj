@@ -27,15 +27,14 @@
                 (binding [*out* w] (pr (deref *albums*))))
               file)))
 
-(defn albums [& [{:keys [order query] :or {order []}}]]
+(defn albums [& [{:keys [query]}]]
   (let [query (and query (.toLowerCase query))
         f (if (or (nil? query) (= "" query))
             (fn [_] true)
             (fn [album]
               (if-let [v (:doc album)]
                 (not= -1 (.indexOf v query)))))]
-    (utils/sort-by-keys (filter f (deref *albums*))
-                        order)))
+    (filter f (deref *albums*))))
 
 (defn album-by-id [id]
   (first (filter #(= id (:id %))
