@@ -152,8 +152,10 @@
                           (when len
                             {"Content-Length" (and len (str len))}))
           :body in}))
-  (GET "/scan" []
-       (future (models/scan))
+  (GET "/update" []
+       (future
+         (models/scan)
+         (models/purge))
        (Thread/sleep 2000)
        {:status 307
         :headers {"Location" "/"}}))

@@ -93,13 +93,37 @@
                  :mtime (.lastModified file)
                  :dir (.getParent file)})))
 
+(defn remove-track [albums id]
+  (vec (filter #(not (empty? (:tracks %)))
+               (map (fn [album]
+                      (update-in album
+                                 [:tracks]
+                                 (fn [tracks]
+                                   (vec (filter (fn [track]
+                                                  (not= id (:id track)))
+                                                tracks)))))
+                    albums))))
+
+(defn remove-file! [file]
+  (swap! *albums* remove-track
+         (utils/sha1 (.getPath file))))
+
 (defn scan []
   (let [before (System/currentTimeMillis)]
     (doseq [file (filter #(and (.isFile %)
                                (re-matches #".+\.(mp3|m4a|flac|ogg)"
                                            (.getName %)))
                          (file-seq (File. "/home/remco/Music")))]
-      (prn file)
+      (println "updating" file)
       (update-file! file))
-    (println "scanned plenty of files in" (- (System/currentTimeMillis) before)))
+    (println "scanned in" (- (System/currentTimeMillis) before) "ms"))
+  (send-off-backup))
+
+(defn purge []
+  (let [before (System/currentTimeMillis)]
+    (doseq [file (map #(File. %) (filter identity (map :path (flatten (map :tracks (deref *albums*))))))]
+      (when-not (.exists file)
+        (println "removing" file)
+        (remove-file! file)))
+    (println "purged in" (- (System/currentTimeMillis) before) "ms"))
   (send-off-backup))
