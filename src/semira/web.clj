@@ -13,13 +13,13 @@
   (:import [java.io File]))
 
 (defn int->time [i]
-  (when i
-       (let [hours (quot i 3600)
-             minutes (quot (rem i 3600) 60)
-             seconds (rem i 60)]
-         (cond (not= 0 hours)   (format "%d:%02d:%02d" hours minutes seconds)
-               (not= 0 minutes) (format "%d:%02d" minutes seconds)
-               :else            (format ":%02d" seconds)))))
+  (if i
+    (let [hours (quot i 3600)
+          minutes (quot (rem i 3600) 60)
+          seconds (rem i 60)]
+      (cond (not= 0 hours)   (format "%d:%02d:%02d" hours minutes seconds)
+            (not= 0 minutes) (format "%d:%02d" minutes seconds)
+            :else            (format ":%02d" seconds)))))
 
 (defmulti h class)
 (defmethod h java.util.List [val] (escape-html (apply str (interpose ", " val))))
@@ -62,15 +62,11 @@
     (str "<!-- " (:dir album) " @ " (:mtime album) " -->")
     [:div.header
      (album-play-link album "/images/note-larger.png")
-     (when (:artist album)
-       [:h2.artist (h (:artist album))])
-     (when (:album album)
-       [:h3.album (h (:album album))])]
+     (if (:artist album) [:h2.artist (h (:artist album))])
+     (if (:album album) [:h3.album (h (:album album))])]
     [:dl.meta
-     (mapcat #(vec [[:dt {:class (name %)}
-                     (h (name %))]
-                    [:dd {:class (name %)}
-                     (h (album %))]])
+     (mapcat #(vec [[:dt {:class (name %)} (h (name %))]
+                    [:dd {:class (name %)} (h (album %))]])
              (filter #(album %)
                      [:composer :conductor :producer :remixer :year :genre :encoding]))]
     [:ol.tracks
@@ -115,7 +111,7 @@
           [:button {:type "submit"} "Go!"]]]]]
 
       [:ul.albums
-       (when pagination [:li.pagination pagination])
+       (if pagination [:li.pagination pagination])
        (map (fn [album]
               [:li.album
                [:a {:href (str "/album/" (:id album))}
@@ -123,7 +119,7 @@
                " "
                (album-play-link album "/images/note.png")])
             (take-page albums page))
-       (when pagination [:li.pagination pagination])]])))
+       (if pagination [:li.pagination pagination])]])))
 
 (defroutes routes
   (GET "/" [page query]
@@ -149,8 +145,7 @@
              len (stream/length object type)]
          {:status 200
           :headers (merge {"Content-Type" type}
-                          (when len
-                            {"Content-Length" (and len (str len))}))
+                          (if len {"Content-Length" (str len)}))
           :body in}))
   (GET "/update" []
        (future
