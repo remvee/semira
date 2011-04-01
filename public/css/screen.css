@@ -1,6 +1,6 @@
 html { background: #ccc; }
 body { line-height: 1.5; margin: 0; font-family: Arial, Helvetica, sans-serif; font-size: 12px; }
-a { text-decoration: none; color: blue; }
+a:link, a:visited { text-decoration: none; color: blue; }
 input, button { border-radius: 3px; -moz-border-radius: 3px; border: solid #aaa 1px; font-size: 12px; padding: 2px; }
 button { background: #ccc; padding: 2px 4px; }
 img { border: none; }
@@ -28,8 +28,11 @@ dl.meta dd { width: 20em; display: block; }
 
 ol.tracks li .length { float: right; }
 
-.pagination .previous { float: left; }
-.pagination .next { float: right; }
+div.pagination { display: table; width: 100%; }
+div.pagination div { display: table-row; }
+div.pagination div span { display: table-cell; }
+div.pagination div span.previous, div.pagination div span.next { width: 13px; }
+div.pagination div span.sorting { text-align: center; font-size: smaller; vertical-align: middle; }
 
 .search { display: table; margin: 0; padding: 0; width: 100%; }
 .search div { display: table-row; }

@@ -2,12 +2,11 @@
   (:require [semira.models :as models]
             [semira.stream :as stream]
             [semira.utils  :as utils])
-  (:use [compojure.core :only [defroutes GET POST ANY]]
-        [ring.middleware.params :only [wrap-params]]
+  (:use [ring.middleware.params :only [wrap-params]]
         [ring.middleware.file :only [wrap-file]]
         [ring.middleware.file-info :only [wrap-file-info]]
         [remvee.ring.middleware.partial-content :only [wrap-partial-content]]
-        
+        [compojure.core :only [defroutes GET POST ANY]]
         [hiccup.core :only [html escape-html]]
         [hiccup.page-helpers :only [include-css include-js]])
   (:import [java.io File]))
@@ -85,31 +84,35 @@
 
 (def albums-index-keys [:genre :artist :album :year])
 
-(defn albums-index [albums & [{page :page, query :query :as params}]]
+(defn albums-index [sorting albums & [{page :page, query :query :as params}]]
   (layout
-   (let [pagination (if (or (> page 0)
-                            (not (empty? (take-page albums (inc page)))))
-                      [:div.pagination
-                       [:span.previous
-                        (if (= 0 page)
-                          ""
-                          [:a {:href (str "?" (map->query-string (assoc params :page (dec page))))}
-                           [:img {:src "/images/previous.png" :alt "&larr;"}]])]
-                       [:span.next
-                        (if (empty? (take-page albums (inc page)))
-                          ""
-                          [:a.next {:href (str "?" (map->query-string (assoc params :page (inc page))))}
-                           [:img {:src "/images/next.png" :alt "&rarr;"}]])]])]
-     
-     [:div
-      [:div.header
-       [:form {:method "get" :class "search"}
-        [:div
-         [:span.input
-          [:input {:type "text", :name "query", :value query}]]
-         [:span.button
-          [:button {:type "submit"} "Go!"]]]]]
-
+   [:div
+    [:div.header
+     [:form {:method "get" :class "search"}
+      [:div
+       [:span.input
+        [:input {:type "text", :name "query", :value query}]]
+       [:span.button
+        [:button {:type "submit"} "Go!"]]]]]
+    (let [url-fn #(str "?" (map->query-string (assoc params :page %)))
+          pagination
+          (let [first-page (= page 0)
+                last-page (empty? (take-page albums (inc page)))]
+            (if-not (and first-page last-page)
+              [:div.pagination
+               [:div
+                [:span.previous
+                 (if-not first-page
+                   [:a {:href (url-fn (dec page))}
+                    [:img {:src "/images/previous.png" :alt "&larr;"}]])]
+                [:span.sorting
+                 [:a (if-not (= sorting :sorted) {:href "/"}) "sorted"]
+                 " | "
+                 [:a (if-not (= sorting :latest) {:href "/latest"}) "latest additions"]]
+                [:span.next
+                 (if-not last-page
+                   [:a.next {:href (url-fn (inc page))}
+                    [:img {:src "/images/next.png" :alt "&rarr;"}]])]]]))]
       [:ul.albums
        (if pagination [:li.pagination pagination])
        (map (fn [album]
@@ -119,20 +122,20 @@
                " "
                (album-play-link album "/images/note.png")])
             (take-page albums page))
-       (if pagination [:li.pagination pagination])]])))
+       (if pagination [:li.pagination pagination])])]))
 
 (defroutes routes
   (GET "/" [page query]
-       (albums-index
-        (utils/sort-by-keys (models/albums {:query query})
-                            albums-index-keys)
-        {:page (if page (Integer/valueOf page) 0)
-         :query query}))
-  (GET "/new" [page query]
-       (albums-index
-        (reverse (sort-by :mtime (models/albums {:query query})))
-        {:page (if page (Integer/valueOf page) 0)
-         :query query}))
+       (albums-index :sorted
+                     (utils/sort-by-keys (models/albums {:query query})
+                                         albums-index-keys)
+                     {:page (if page (Integer/valueOf page) 0)
+                      :query query}))
+  (GET "/latest" [page query]
+       (albums-index :latest
+                     (reverse (sort-by :mtime (models/albums {:query query})))
+                     {:page (if page (Integer/valueOf page) 0)
+                      :query query}))
   (GET "/album/:id" [id]
        (album-show (models/album-by-id id)))
   (GET "/stream/:model/:id.:ext" [model id ext :as request]
