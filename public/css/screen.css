@@ -13,7 +13,7 @@ div.header a.play img { padding: 2px 0; }
 
 ul.albums { list-style: none; }
 ul.albums, ol.tracks { clear: both; margin: 5px; padding: 0; border: 1px solid #aaa; background: #fff; border-radius: 5px; -moz-border-radius: 5px;}
-ul.albums li, ol.tracks li { border-bottom: 1px solid #ccc; padding: 5px 10px; overflow: hidden; position: relative; }
+ul.albums li, ol.tracks li { border-bottom: 1px solid #ccc; padding: 5px 10px; position: relative; }
 ul.albums li a.play img { padding: 3px 0; }
 ul.albums li span.genre, ul.albums li span.year { font-size: smaller; }
 ul.albums li span.album { font-style: italic; }
