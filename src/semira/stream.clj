@@ -5,7 +5,7 @@
             [semira.utils :as utils])
   (:import [java.io File FileInputStream PipedInputStream PipedOutputStream IOException]))
 
-(def *cache-dir* "/tmp/semira")
+(def *cache-dir* "/var/cache/semira")
 (def *bitrate* 80)
 
 ;; ensure cache directory exists
