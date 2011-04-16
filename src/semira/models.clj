@@ -1,10 +1,11 @@
 (ns semira.models
-  (:use [semira.audio :as audio]
-        [semira.utils :as utils]
-        [clojure.java.io :as io])
+  (:require [semira.audio :as audio]
+            [semira.utils :as utils]
+            [clojure.java.io :as io]
+            [clojure.string :as s])
   (:import [java.io File FileInputStream FileOutputStream PushbackReader]))
 
-(def *albums-file* "/tmp/semira.sexp")
+(def *albums-file* "/var/lib/semira.sexp")
 
 (def *albums*
   (atom
@@ -52,22 +53,24 @@
                                  (map :mtime (:tracks album)))))))
 
 (defn- doc-album [album]
-  (assoc album :doc (.toLowerCase (str (:artist album) " "
-                                       (:album album) " "
-                                       (:genre album) " "
-                                       (:year album)))))
+  (assoc album :doc (reduce (fn [m [p r]] (s/replace m p r))
+                            (.toLowerCase (str (:artist album) " "
+                                               (:album album) " "
+                                               (:genre album) " "
+                                               (:year album)))
+                            [[#"\s+" " "]
+                             [#"^\s|\s$" ""]])))
 
-(defn- normalize-album [album]
+(defn normalize-album [album]
   (let [tracks (map #(merge album %) (:tracks album))
-        common (filter #(and (not= :id %)
-                             (apply = (map % tracks)))
+        common (filter #(apply = (map % tracks))
                        (into #{} (flatten (map keys tracks))))]
     (merge
      (select-keys (first tracks) common)
-     {:id (:id album)
-      :tracks (vec (utils/sort-by-keys (map #(apply dissoc % common)
+     {:tracks (vec (utils/sort-by-keys (map #(apply dissoc % common)
                                             tracks)
-                                       [:track :path :title]))})))
+                                       [:track :path :title]))}
+     (select-keys album [:id :mtime]))))
 
 (defn update-track [albums track]
   (let [id (utils/sha1 (:dir track))
