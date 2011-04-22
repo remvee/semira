@@ -156,7 +156,7 @@
          (models/purge))
        (Thread/sleep 2000)
        {:status 307
-        :headers {"Location" "/"}}))
+        :headers {"Location" "/latest"}}))
 
 (def app (-> routes wrap-params (wrap-file "public") wrap-file-info wrap-partial-content))
 
