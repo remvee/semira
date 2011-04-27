@@ -7,7 +7,7 @@
                  [hiccup "0.3.4"]
                  [ring/ring-jetty-adapter "0.3.6"]
                  [ring/ring-devel "0.3.6"]
-                 [ring-partial-content "0.0.1-SNAPSHOT"]
+                 [ring-partial-content "0.0.1"]
                  
                  [org/jaudiotagger "2.0.3"]
                  
