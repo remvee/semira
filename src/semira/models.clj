@@ -79,14 +79,14 @@
                                   :tracks []})
                              [:tracks]
                              (fn [tracks]
-                               (conj (vec (filter #(not= (:id track)
-                                                         (:id %))
+                               (conj (vec (remove #(= (:id track)
+                                                      (:id %))
                                                   tracks))
                                      track)))
                   normalize-album
                   doc-album
                   mtime-album)]
-    (conj (vec (filter #(not= (:id album) (:id %)) albums)) album)))
+    (conj (vec (remove #(= (:id album) (:id %)) albums)) album)))
 
 (defn update-file! [file]
   (swap! *albums* update-track
@@ -102,14 +102,29 @@
                       (update-in album
                                  [:tracks]
                                  (fn [tracks]
-                                   (vec (filter (fn [track]
-                                                  (not= id (:id track)))
+                                   (vec (remove #(= id (:id %))
                                                 tracks)))))
                     albums))))
 
 (defn remove-file! [file]
   (swap! *albums* remove-track
          (utils/sha1 (.getPath file))))
+
+(defn hit-track! [track tstamp]
+  (swap! *albums*
+         (fn [albums]
+           (if-let [album (first (filter #(some (partial = track) (:tracks %))
+                                         albums))]
+             (replace
+              {album
+               (update-in album [:tracks]
+                          (partial replace
+                                   {track
+                                    (update-in track [:hits]
+                                               #(if % (conj % tstamp)
+                                                    [tstamp]))}))}
+              albums)
+             albums))))
 
 (defn scan []
   (let [before (System/currentTimeMillis)]
