@@ -64,7 +64,8 @@
 (defn normalize-album [album]
   (let [tracks (map #(merge album %) (:tracks album))
         common (filter #(apply = (map % tracks))
-                       (into #{} (flatten (map keys tracks))))]
+                       (disj (into #{} (flatten (map keys tracks)))
+                             :id :mtime :path :title :track :length))]
     (merge
      (select-keys (first tracks) common)
      {:tracks (vec (utils/sort-by-keys (map #(apply dissoc % common)
