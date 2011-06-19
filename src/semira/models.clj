@@ -5,7 +5,8 @@
             [clojure.string :as s])
   (:import [java.io File FileInputStream FileOutputStream PushbackReader]))
 
-(def *albums-file* "/var/lib/semira.sexp")
+(def *albums-file* (get (System/getenv) "SEMIRA_ALBUMS_SEXP" "/var/lib/semira.sexp"))
+(def *music-dir* (get (System/getenv) "SEMIRA_MUSIC_DIR" "/var/lib/semira"))
 
 (def *albums*
   (atom
@@ -132,8 +133,8 @@
     (doseq [file (filter #(and (.isFile %)
                                (re-matches #".+\.(mp3|m4a|flac|ogg)"
                                            (.getName %)))
-                         (file-seq (File. "/home/remco/Music")))]
-      (println "updating" file)
+                         (file-seq (File. *music-dir*)))]
+      (println "updating:" file)
       (update-file! file))
     (println "scanned in" (- (System/currentTimeMillis) before) "ms"))
   (send-off-backup))
@@ -142,7 +143,7 @@
   (let [before (System/currentTimeMillis)]
     (doseq [file (map #(File. %) (filter identity (map :path (flatten (map :tracks (deref *albums*))))))]
       (when-not (.exists file)
-        (println "removing" file)
+        (println "removing:" file)
         (remove-file! file)))
     (println "purged in" (- (System/currentTimeMillis) before) "ms"))
   (send-off-backup))
