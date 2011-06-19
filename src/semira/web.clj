@@ -158,6 +158,17 @@
        {:status 307
         :headers {"Location" "/latest"}}))
 
-(def app (-> routes wrap-params (wrap-file "public") wrap-file-info wrap-partial-content))
+(defn wrap-log-request [app]
+  (fn [req]
+    (println (str (-> (java.text.SimpleDateFormat. "[yyyy/MM/dd HH:mm:ss] ")
+                      (.format (java.util.Date.)))
+                  (.toUpperCase (name (:request-method req)))
+                  " "
+                  (:uri req)
+                  (if (:query-string req)
+                    (str "?" (:query-string req)))))
+    (app req)))
+
+(def app (-> routes wrap-params (wrap-file "public") wrap-file-info wrap-partial-content wrap-log-request))
 
 ;; (do (require 'ring.adapter.jetty) (ring.adapter.jetty/run-jetty (var app) {:port 8080}))
