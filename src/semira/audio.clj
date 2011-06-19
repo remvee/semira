@@ -2,7 +2,8 @@
   (:import [java.io StringBufferInputStream]
            [java.util.logging LogManager]
            [org.jaudiotagger.audio AudioFileIO]
-           [org.jaudiotagger.tag FieldKey TagField TagTextField]))
+           [org.jaudiotagger.tag FieldKey Tag TagField TagTextField]
+           [org.jaudiotagger.tag.mp4 Mp4Tag Mp4FieldKey]))
 
 ;; kill log messages from jaudiotagger
 (.readConfiguration (LogManager/getLogManager)
@@ -57,10 +58,10 @@
              :track_total
              :year])
 
-(defn to-i [v]
-  (and (first v)
-       (re-matches #"\d+" (first v))
-       (Integer/valueOf (first v))))
+(defn to-i [vals]
+  (if (first vals)
+    (if-let [val (re-find #"\d+" (first vals))]
+      (Integer/valueOf val))))
 
 (defn translate-genres [vals]
   (and (first vals)
@@ -85,6 +86,27 @@
 (defmethod field-str TagTextField [field] (.getContent field))
 (defmethod field-str TagField [field] (.toString field))
 
+(defn base-tag-fields [tag]
+  (into {}
+        (map (fn [[k v]] [k ((get field-fns k identity) v)])
+             (filter #(seq (last %))
+                     (map (fn [k]
+                            (let [fs (.getFields tag
+                                                 (FieldKey/valueOf (.toUpperCase (name k))))]
+                              [k (vec (filter #(not= "" %) (map field-str fs)))]))
+                          fields)))))
+
+(defmulti tag-fields class)
+(defmethod tag-fields Tag [tag] (base-tag-fields tag))
+(defmethod tag-fields Mp4Tag [tag]
+  (let [track (.getFirst tag Mp4FieldKey/TRACK)]
+    (merge-with #(or %1 %2)
+                (base-tag-fields tag)
+                {:genre (vec (map field-str (.get tag Mp4FieldKey/GENRE_CUSTOM)))}
+                (if-let [[_ track _ track_total] (re-matches #"(\d+)(/(\d+))?" (str track))]
+                  {:track (Integer/parseInt track)
+                   :track_total (Integer/parseInt track_total)}))))
+
 (defn info
   "Pull meta data from audio file."
   [file]
@@ -94,10 +116,4 @@
     (if (and tag header)
       (into {:length (.getTrackLength header)
              :encoding (.getEncodingType header)}
-            (map (fn [[k v]] [k ((get field-fns k identity) v)])
-                 (filter #(seq (last %))
-                         (map (fn [k]
-                                (let [fs (.getFields tag
-                                                     (FieldKey/valueOf (.toUpperCase (name k))))]
-                                  [k (vec (filter #(not= "" %) (map field-str fs)))]))
-                              fields)))))))
+            (tag-fields tag)))))
