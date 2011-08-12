@@ -5,22 +5,22 @@
             [clojure.string :as s])
   (:import [java.io File FileInputStream FileOutputStream PushbackReader]))
 
-(def *albums-file* (get (System/getenv) "SEMIRA_ALBUMS_SEXP" "/var/lib/semira.sexp"))
-(def *music-dir* (get (System/getenv) "SEMIRA_MUSIC_DIR" "/var/lib/semira"))
+(def albums-file (get (System/getenv) "SEMIRA_ALBUMS_SEXP" "/var/lib/semira.sexp"))
+(def  music-dir (get (System/getenv) "SEMIRA_MUSIC_DIR" "/var/lib/semira"))
 
-(def *albums*
+(def ^:dynamic *albums*
   (atom
    (try
      (with-open [r (PushbackReader.
                     (io/reader (FileInputStream.
-                                *albums-file*)))]
+                                albums-file)))]
        (binding [*in* r]
          (read)))
      (catch Exception e
        (do (prn e)
            [])))))
 
-(def backup-agent (agent *albums-file*))
+(def backup-agent (agent albums-file))
 
 (defn send-off-backup []
   (send-off backup-agent
@@ -133,7 +133,7 @@
     (doseq [file (filter #(and (.isFile %)
                                (re-matches #".+\.(mp3|m4a|flac|ogg)"
                                            (.getName %)))
-                         (file-seq (File. *music-dir*)))]
+                         (file-seq (File. music-dir)))]
       (println "updating:" file)
       (update-file! file))
     (println "scanned in" (- (System/currentTimeMillis) before) "ms"))

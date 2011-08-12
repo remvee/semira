@@ -33,19 +33,19 @@
 (defn map->query-string [m]
   (apply str (interpose "&" (map (fn [[k v]] (str (name k) "=" v)) m))))
 
-(def *page-size* 20)
+(def ^:dynamic *page-size* 20)
 (defn take-page [coll page]
   (take *page-size*
         (drop (* page *page-size*) coll)))
 
-(def *title* "SEMIRA")
+(def app-title "SEMIRA")
 
 (defn layout [body & [{:keys [title]}]]
   {:status 200
    :headers {"Content-Type" "text/html; charset=UTF-8"}
    :body (html [:html
                 [:head
-                 [:title (h (if title (str *title* " / " title) *title*))]
+                 [:title (h (if title (str app-title " / " title) app-title))]
                  [:meta {:name "viewport", :content "width=device-width, initial-scale=1, maximum-scale=1"}]
                  (include-css "/css/screen.css")]
                 [:body body]])})
