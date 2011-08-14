@@ -11,5 +11,7 @@
                  
                  [org/jaudiotagger "2.0.3"]
                  
-                 [lein-run "1.0.0"]]
+                 [lein-run "1.0.0"]
+
+                 [hiccups "0.1.1"]]
   :run-aliases {:server ["script/server.clj"]})

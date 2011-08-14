@@ -1,6 +1,6 @@
 html { background: #ccc; }
 body { line-height: 1.5; margin: 0; font-family: Arial, Helvetica, sans-serif; font-size: 12px; }
-a:link, a:visited { text-decoration: none; color: blue; }
+a, a:link, a:visited { text-decoration: none; color: blue; cursor: pointer; }
 input, button { border-radius: 3px; -moz-border-radius: 3px; border: solid #aaa 1px; font-size: 12px; padding: 2px; }
 button { background: #ccc; padding: 2px 4px; }
 img { border: none; }
@@ -12,27 +12,17 @@ div.header a.play { font-size: 18px; font-weight: bold; }
 div.header a.play img { padding: 2px 0; }
 
 ul.albums { list-style: none; }
-ul.albums, ol.tracks { clear: both; margin: 5px; padding: 0; border: 1px solid #aaa; background: #fff; border-radius: 5px; -moz-border-radius: 5px;}
-ul.albums li, ol.tracks li { border-bottom: 1px solid #ccc; padding: 5px 10px; position: relative; }
+ul.albums { clear: both; margin: 5px; padding: 0; border: 1px solid #aaa; background: #fff; border-radius: 5px; -moz-border-radius: 5px;}
+ul.albums li { border-bottom: 1px solid #ccc; padding: 5px 10px; position: relative; }
 ul.albums li a.play img { padding: 3px 0; }
 ul.albums li span.genre, ul.albums li span.year { font-size: smaller; }
 ul.albums li span.album { font-style: italic; }
 
-h2.artist { margin: 0; padding: 0; font-size: 16px; }
-h3.album { margin: 0; padding: 0; font-size: 16px; font-style: italic; }
-ol.tracks { list-style-position: inside; }
-
-dl.meta { margin: 5px 10px; font-size: smaller; }
-dl.meta dt { width: 6em; float: left; padding-right: 1em; font-weight: bold; }
-dl.meta dd { width: 20em; display: block; }
-
+ol.tracks { list-style-position: inside; border-top: 1px solid #eee; clear: both; margin: 5px 0; padding: 0; }
+ol.tracks li { padding: 5px; position: relative; border-bottom: 1px solid #eee; }
 ol.tracks li .length { float: right; }
 
-div.pagination { display: table; width: 100%; }
-div.pagination div { display: table-row; }
-div.pagination div span { display: table-cell; }
-div.pagination div span.previous, div.pagination div span.next { width: 13px; }
-div.pagination div span.sorting { text-align: center; font-size: smaller; vertical-align: middle; }
+li.more { text-align: right; }
 
 .search { display: table; margin: 0; padding: 0; width: 100%; }
 .search div { display: table-row; }
