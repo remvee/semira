@@ -1,73 +1,41 @@
 (ns semira.frontend
-  (:require-macros
-   [hiccups.core :as hiccups])
-  
   (:require
+   [semira.frontend.audio :as audio]
    [semira.frontend.snippets :as snippets]
-
-   [cljs.reader :as reader]
-
-   [goog.net.XhrIo :as xhr]
+   [semira.frontend.utils :as utils]
    [goog.events :as events]
-   [goog.dom :as dom]
-   [goog.uri.utils :as uri-utils]
-   
-   [hiccups.runtime :as hiccupsrt]))
-
-(defn htmlify [v]
-  (hiccups/html v))
-
-(defn map->js [m]
-  (let [out (js-obj)]
-    (doseq [[k v] m] (aset out (name k) v))
-    out))
-
-(defn remote-get [url callback]
-  (let [xhr (goog.net.XhrIo.)]
-    (events/listen xhr goog.net.EventType/COMPLETE (fn [] (callback (reader/read-string (. xhr (getResponseText))))))
-    (. xhr (send url "GET" "" (map->js {"Content-Type" "application/clojure; charset=utf-8"})))))
-
-(def by-id dom/getElement)
-
-(def by-tag-class dom/getElementsByTagNameAndClass)
-
-(defn first-by-tag-class [tag class elm]
-  (aget (by-tag-class tag class elm) 0))
-
-(defn inner-html [elm html]
-  (set! (. elm innerHTML) html))
+   [goog.uri.utils :as uri-utils]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def albums-list (atom ()))
 
 (defn albums-query []
-  (let [input (by-id "search-query")]
+  (let [input (utils/by-id "search-query")]
     (. input value)))
 
 (defn albums-update []
-  (inner-html (by-id "albums")
-              (htmlify (snippets/album-rows @albums-list))))
+  (utils/inner-html (utils/by-id "albums")
+                    (utils/htmlify (snippets/album-rows @albums-list))))
 
 (defn ^:export albums-more []
   (let [uri (-> "/albums"
-                (uri-utils/appendParam "limit" 5)
                 (uri-utils/appendParam "offset" (count @albums-list))
                 (uri-utils/appendParam "query" (albums-query)))]
-    (remote-get uri
-                #(do (swap! albums-list concat %)
-                     (albums-update)))))
+    (utils/remote-get uri
+                      #(do (swap! albums-list concat %)
+                           (albums-update)))))
 
 (defn ^:export album-toggle [id]
-  (let [row (by-id (str "album-" id))
-        container (first-by-tag-class "div" "album" row)]
-    (if (first-by-tag-class "ol" "tracks" container)
-      (inner-html container "")
-      (remote-get (str "album/" id)
-                  #(inner-html container
-                               (htmlify (snippets/album %)))))))
+  (let [row (utils/by-id (str "album-" id))
+        container (utils/first-by-tag-class "div" "album" row)]
+    (if (utils/first-by-tag-class "ol" "tracks" container)
+      (utils/inner-html container "")
+      (utils/remote-get (str "album/" id)
+                        #(utils/inner-html container
+                                     (utils/htmlify (snippets/album %)))))))
 
-(events/listen (by-id "search")
+(events/listen (utils/by-id "search")
                goog.events.EventType/SUBMIT
                #(do (. % (preventDefault))
                     (reset! albums-list nil)

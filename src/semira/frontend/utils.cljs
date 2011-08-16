@@ -1,5 +1,13 @@
 (ns semira.frontend.utils
-  (:require [goog.string :as gstring]))
+  (:require
+   [cljs.reader :as reader]
+   [goog.dom :as dom]
+   [goog.events :as events]
+   [goog.string :as gstring]
+   [goog.net.XhrIo :as xhr]
+   [hiccups.runtime :as hiccupsrt])
+  (:require-macros
+   [hiccups.core :as hiccups]))
 
 (defn escape-html [value]
   (gstring/htmlEscape value))
@@ -42,3 +50,27 @@
   [coll page]
   (take *page-size*
         (drop (* page *page-size*) coll)))
+
+
+(defn htmlify [v]
+  (hiccups/html v))
+
+(defn map->js [m]
+  (let [out (js-obj)]
+    (doseq [[k v] m] (aset out (name k) v))
+    out))
+
+(defn remote-get [url callback]
+  (let [xhr (goog.net.XhrIo.)]
+    (events/listen xhr goog.net.EventType/COMPLETE (fn [] (callback (reader/read-string (. xhr (getResponseText))))))
+    (. xhr (send url "GET" "" (map->js {"Content-Type" "application/clojure; charset=utf-8"})))))
+
+(def by-id dom/getElement)
+
+(def by-tag-class dom/getElementsByTagNameAndClass)
+
+(defn first-by-tag-class [tag class elm]
+  (aget (by-tag-class tag class elm) 0))
+
+(defn inner-html [elm html]
+  (set! (. elm innerHTML) html))

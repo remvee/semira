@@ -13,7 +13,7 @@
 
 (defn track-row [track]
   [:li.track
-   [:a {:href (str "/stream/track/" (:id track) ".mp3")}
+   [:a {:onclick (str "semira.frontend.audio.load('" (:id track) "')")}
     (utils/interposed-html track " / " track-row-keys)]
    " "
    [:span.length (utils/seconds->time (:length track))]])

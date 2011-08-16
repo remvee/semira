@@ -7,13 +7,18 @@
 
 
 (defn overview-header [query]
-   [:div.header
-    [:form#search.search {:method "get"}
-     [:div
-      [:span.input
-       [:input#search-query {:type "text", :name "query", :value query}]]
-      [:span.button
-       [:button {:type "submit"} "Go!"]]]]])
+  [:div.header
+   [:form#search.search {:method "get"}
+    [:span.input
+     [:input#search-query {:type "text", :name "query", :value query}]]
+    [:span.button
+     [:button {:type "submit"} "Go!"]]]
+   [:div.player
+    [:span.play-or-pause
+     [:button.play-or-pause {:type "button" :onclick "semira.frontend.audio.play_or_pause()"}
+      "Play/Pause"]]
+    [:span#current-track]
+    [:audio#audio-player {:preload "none"}]]])
 
 (defn overview []
   [:div

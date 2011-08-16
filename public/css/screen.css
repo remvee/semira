@@ -24,8 +24,10 @@ ol.tracks li .length { float: right; }
 
 li.more { text-align: right; }
 
-.search { display: table; margin: 0; padding: 0; width: 100%; }
-.search div { display: table-row; }
-.search div span { display: table-cell; vertical-align: middle; }
-.search div span.input { width: 100%; padding-right: 4px; }
-.search div input { width: 100%; }
+.header { display: table; margin: 0; padding: 0; }
+.search { display: table-row; }
+.search span { display: table-cell; vertical-align: middle; }
+.search span.input { width: 100%; padding-right: 4px; }
+.search input { width: 100%; }
+.header div.player { display: table-row; }
+.header div.player span { width: table-cell; }
