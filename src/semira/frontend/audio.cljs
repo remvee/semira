@@ -1,6 +1,8 @@
 (ns semira.frontend.audio
   (:require
-   [semira.frontend.utils :as utils]))
+   [semira.frontend.utils :as utils]
+   [goog.uri.utils :as uri-utils]
+   [goog.userAgent :as user-agent]))
 
 (def player (atom (new js/Audio "")))
 
@@ -23,7 +25,10 @@
                   (str "/stream/track/" id ".ogg")
                   
                   :else
-                  (str "/stream/track/" id ".mp3"))]
+                  (str "/stream/track/" id ".mp3"))
+        uri (if user-agent/WEBKIT
+              (uri-utils/appendParam uri "wait" true)
+              uri)]
     (pause)
     (reset! player (new js/Audio uri))
     (set! (. @player autoplay) true)))

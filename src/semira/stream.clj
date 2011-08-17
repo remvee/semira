@@ -21,7 +21,7 @@
 
 (def conversions ^{:private true} (atom #{}))
 
-(defn- convert [track type]
+(defn- convert [track type & {wait :wait}]
   (let [filename (cache-file track type)
         decoder (condp re-matches (:path track)
                   #".*\.flac" "flacdec"
@@ -43,15 +43,16 @@
     (swap! conversions conj filename)
 
     ;; wait for conversion to finish and deregister it
-    (.start
-     (Thread.
-      (fn []
-        (.waitFor process)
-        (swap! conversions disj filename)
-        (when-not (= 0 (.exitValue process))
-          (printf "ERROR: %s: %s"
-                  (apply str command)
-                  (slurp (.getErrorStream process)))))))))
+    (let [guardian (fn []
+                     (.waitFor process)
+                     (swap! conversions disj filename)
+                     (when-not (= 0 (.exitValue process))
+                       (printf "ERROR: %s: %s"
+                               (apply str command)
+                               (slurp (.getErrorStream process)))))]
+      (if wait
+        (guardian)
+        (.start (Thread. guardian))))))
 
 (defn- live-input [track type]
   (let [filename (cache-file track type)
@@ -92,7 +93,7 @@
   "Return an input stream of given type for the given object."
   object-type)
 
-(defmethod get :track [track type]
+(defmethod get :track [track type & {wait :wait}]
   (locking get
     (let [filename (cache-file track type)]
       (cond
@@ -104,10 +105,10 @@
 
        :else
        (do
-         (convert track type)
+         (convert track type :wait wait)
          (live-input track type))))))
 
-(defmethod get :album [album type]
+(defmethod get :album [album type & {wait :wait}]
   (let [pipe (PipedInputStream.)
         out (PipedOutputStream. pipe)]
     (.start
@@ -115,7 +116,7 @@
       (fn []
         (try
           (doseq [track (:tracks album)]
-            (with-open [in (get track type)]
+            (with-open [in (get track type :wait wait)]
               (io/copy in out)))
           (catch IOException _) ; pipe closed
           (finally (.close out))))))
