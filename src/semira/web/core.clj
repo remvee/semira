@@ -16,8 +16,7 @@
                              [:meta {:name "viewport", :content "width=device-width, initial-scale=1, maximum-scale=1"}]
                              (hiccup-helpers/include-css "/css/screen.css")]
                             [:body
-                             body
-;                             (hiccup-helpers/include-js "/js/semira/goog/base.js")
+                             [:div#container body]
+                             (hiccup-helpers/include-js "/js/semira/goog/base.js")
                              (hiccup-helpers/include-js "/js/semira.js")
-;                             [:script {:type "application/javascript"} "goog.require('semira.frontend')"]
-                             ]]))})
+                             [:script {:type "application/javascript"} "goog.require('semira.frontend')"]]]))})

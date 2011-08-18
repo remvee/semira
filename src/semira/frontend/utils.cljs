@@ -9,6 +9,9 @@
   (:require-macros
    [hiccups.core :as hiccups]))
 
+(defn debug [& args]
+  (js/console.log (pr-str args)))
+
 (defn escape-html [value]
   (gstring/htmlEscape value))
 

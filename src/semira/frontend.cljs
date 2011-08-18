@@ -2,43 +2,40 @@
   (:require
    [semira.frontend.audio :as audio]
    [semira.frontend.snippets :as snippets]
+   [semira.frontend.state :as state]
    [semira.frontend.utils :as utils]
-   [goog.events :as events]
-   [goog.uri.utils :as uri-utils]))
+   [goog.events :as events]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(def albums-list (atom ()))
 
 (defn albums-query []
   (let [input (utils/by-id "search-query")]
     (. input value)))
 
-(defn albums-update []
+(defn albums-update [albums]
   (utils/inner-html (utils/by-id "albums")
-                    (utils/htmlify (snippets/album-rows @albums-list))))
+                    (utils/htmlify (snippets/album-rows albums))))
+
+(defn album-update [album]
+  (utils/inner-html (utils/by-id (str "album-" (:id album)))
+                    (utils/htmlify (snippets/album album))))
 
 (defn ^:export albums-more []
-  (let [uri (-> "/albums"
-                (uri-utils/appendParam "offset" (count @albums-list))
-                (uri-utils/appendParam "query" (albums-query)))]
-    (utils/remote-get uri
-                      #(do (swap! albums-list concat %)
-                           (albums-update)))))
+  (state/more-albums (albums-query) albums-update))
 
 (defn ^:export album-toggle [id]
-  (let [row (utils/by-id (str "album-" id))
-        container (utils/first-by-tag-class "div" "album" row)]
+  (let [container (utils/by-id (str "album-" id))]
     (if (utils/first-by-tag-class "ol" "tracks" container)
       (utils/inner-html container "")
-      (utils/remote-get (str "album/" id)
-                        #(utils/inner-html container
-                                     (utils/htmlify (snippets/album %)))))))
+      (state/album id album-update))))
+
+(defn ^:export track-play [id]
+  (audio/load id))
 
 (events/listen (utils/by-id "search")
                goog.events.EventType/SUBMIT
                #(do (. % (preventDefault))
-                    (reset! albums-list nil)
+                    (state/clear-albums)
                     (albums-more)))
 
 (albums-more)

@@ -12,11 +12,15 @@
 (def track-row-keys [:artist :album :title])
 
 (defn track-row [track]
-  [:li.track
-   [:a {:onclick (str "semira.frontend.audio.load('" (:id track) "')")}
-    (utils/interposed-html track " / " track-row-keys)]
-   " "
-   [:span.length (utils/seconds->time (:length track))]])
+  (let [id (:id track)]
+    [:li.track {:id (str "track-" id)}
+     [:a {:onclick (str "semira.frontend.track_play('" id "')")}
+      (utils/interposed-html track " / " track-row-keys)]
+     " "
+     [:span.status {:id (str "track-status-" id)}]
+     [:span.length
+      [:span.played {:id (str "track-current-time-" id)}]
+      [:span.full (utils/seconds->time (:length track))]]]))
 
 (defn album [album]
   [:ol.tracks
@@ -26,15 +30,15 @@
 (def album-row-keys [:genre :artist :album :year])
 
 (defn album-row [album]
-  [:li.album {:id (str "album-" (:id album))}
+  [:li.album
    [:a {:onclick (str "semira.frontend.album_toggle('" (:id album) "')")}
     (utils/interposed-html album " - " album-row-keys)]
    " "
    (play-link album "/images/note.png")
-   [:div.album]])
+   [:div.album  {:id (str "album-" (:id album))}]])
 
 (defn album-rows [albums]
   (concat (map album-row albums)
           [[:li.more
             [:a.more {:onclick "semira.frontend.albums_more()"}
-             [:img {:src "/images/next.png" :alt "&rarr;"}]]]]))
+             [:img {:src "/images/more.png" :alt "&rarr;"}]]]]))
