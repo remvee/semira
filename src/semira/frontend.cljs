@@ -30,7 +30,10 @@
       (state/album id album-update))))
 
 (defn ^:export track-play [id]
-  (audio/load id))
+  (audio/play id))
+
+(defn ^:export track-queue [id]
+  (audio/add id))
 
 (events/listen (utils/by-id "search")
                goog.events.EventType/SUBMIT

@@ -17,6 +17,7 @@
      [:a {:onclick (str "semira.frontend.track_play('" id "')")}
       (utils/interposed-html track " / " track-row-keys)]
      " "
+     [:a.queue {:onclick (str "semira.frontend.track_queue('" id "')")} "(+)"]
      [:span.status {:id (str "track-status-" id)}]
      [:span.length
       [:span.played {:id (str "track-current-time-" id)}]
