@@ -8,6 +8,9 @@ img { border: none; }
 a.play { float: right; font-size: 14px; }
 a.queue { padding: 0 1em; }
 
+.busy {
+    background-image: url("../images/blink.gif");
+}
 div#container {
     margin: auto;
     padding: 5px;

@@ -4,7 +4,8 @@
    [semira.frontend.snippets :as snippets]
    [semira.frontend.state :as state]
    [semira.frontend.utils :as utils]
-   [goog.events :as events]))
+   [goog.events :as events]
+   [goog.dom :as dom]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -12,22 +13,36 @@
   (let [input (utils/by-id "search-query")]
     (. input value)))
 
+(defn album-container [id]
+  (utils/by-id (str "album-" id)))
+
+(defn album-busy [id state]
+  (let [album (dom/getAncestorByTagNameAndClass (album-container id) "li" "album")]
+    (utils/busy album state)))
+
+(defn album-collapse [id]
+  (album-busy id false)
+  (utils/inner-html (album-container id) ""))
+
 (defn albums-update [albums]
+  (utils/busy (utils/by-id "albums-more") false)
   (utils/inner-html (utils/by-id "albums")
                     (utils/htmlify (snippets/album-rows albums))))
 
 (defn album-update [album]
-  (utils/inner-html (utils/by-id (str "album-" (:id album)))
+  (album-busy (:id album) false)
+  (utils/inner-html (album-container (:id album))
                     (utils/htmlify (snippets/album album))))
 
 (defn ^:export albums-more []
+  (utils/busy (utils/by-id "albums-more") true)
   (state/more-albums (albums-query) albums-update))
 
 (defn ^:export album-toggle [id]
-  (let [container (utils/by-id (str "album-" id))]
-    (if (utils/first-by-tag-class "ol" "tracks" container)
-      (utils/inner-html container "")
-      (state/album id album-update))))
+  (album-busy id true)
+  (if (utils/first-by-tag-class "ol" "tracks" (album-container id))
+    (album-collapse id)
+    (state/album id album-update)))
 
 (defn ^:export track-play [id]
   (audio/play id))
@@ -43,6 +58,8 @@
 
 (albums-more)
 
-;; shell: cp lib/hiccups-0.1.1.jar ~/lib/clojurescript/lib; rm -rf public/js/semira*; cljsc src '{:output-dir "public/js/semira"}' > public/js/semira.js
+;; dev: cp lib/hiccups-0.1.1.jar ~/lib/clojurescript/lib; rm -rf public/js/semira*; cljsc src '{:output-dir "public/js/semira"}' > public/js/semira.js
+;; prod: cp lib/hiccups-0.1.1.jar ~/lib/clojurescript/lib; rm -rf public/js/semira*; cljsc src '{:output-dir "public/js/semira" :optimizations :advanced}' > public/js/semira.js
+;; deploy:
 
 ;; cljs bug: cljs.reader.read_string("\"some \\\"quoted\\\" string\"")

@@ -18,7 +18,7 @@
   [:div
    (overview-header "")
    [:ul#albums.albums
-    [:li ".."]]])
+    [:li#albums-more ".."]]])
 
 (compojure/defroutes handler
   (compojure/GET "/" [page query]

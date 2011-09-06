@@ -40,6 +40,6 @@
 
 (defn album-rows [albums]
   (concat (map album-row albums)
-          [[:li.more
+          [[:li.more {:id "albums-more"}
             [:a.more {:onclick "semira.frontend.albums_more()"}
              [:img {:src "/images/more.png" :alt "&rarr;"}]]]]))

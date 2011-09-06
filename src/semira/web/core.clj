@@ -19,4 +19,5 @@
                              [:div#container body]
                              (hiccup-helpers/include-js "/js/semira/goog/base.js")
                              (hiccup-helpers/include-js "/js/semira.js")
-                             [:script {:type "application/javascript"} "goog.require('semira.frontend')"]]]))})
+                             [:script {:type "application/javascript"} "goog.require('semira.frontend')"]
+                             ]]))})

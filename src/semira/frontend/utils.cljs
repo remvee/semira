@@ -2,6 +2,7 @@
   (:require
    [cljs.reader :as reader]
    [goog.dom :as dom]
+   [goog.dom.classes :as dom-classes]
    [goog.events :as events]
    [goog.string :as gstring]
    [goog.net.XhrIo :as xhr]
@@ -77,3 +78,7 @@
 
 (defn inner-html [elm html]
   (set! (. elm innerHTML) html))
+
+(defn busy [elm state]
+  (when elm
+    (dom-classes/enable elm "busy" state)))

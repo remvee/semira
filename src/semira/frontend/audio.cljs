@@ -23,6 +23,10 @@
                 :ended (. @player ended)})
        ""))))
 
+(defn- update-current-busy []
+  (if-let [track (utils/by-id (str "track-" (first @queue)))]
+    (utils/busy track (and @playing? (< (. @player readyState) 4)))))
+
 (defn- update-current-time []
   (if-let [current-time (utils/by-id (str "track-current-time-" (first @queue)))]
     (utils/inner-html
@@ -32,6 +36,7 @@
        ""))))
 
 (defn- update-current []
+  (update-current-busy)
   (update-current-state)
   (update-current-time))
 
