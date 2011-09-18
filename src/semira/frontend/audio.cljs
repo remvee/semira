@@ -1,6 +1,7 @@
 (ns semira.frontend.audio
   (:require
    [semira.frontend.utils :as utils]
+   [goog.dom.classes :as dom-classes]
    [goog.events :as events]
    [goog.Timer :as timer]
    [goog.uri.utils :as uri-utils]
@@ -13,18 +14,8 @@
 (def player (atom (new js/Audio "")))
 
 (defn- update-current-state []
-  (if-let [status (utils/by-id (str "track-status-" (first @queue)))]
-    (utils/inner-html
-     status
-     (if @playing?
-       (pr-str {:readyState (. @player readyState)
-                :networkState (. @player networkState)
-                :error (. @player error)
-                :ended (. @player ended)})
-       ""))))
-
-(defn- update-current-busy []
-  (if-let [track (utils/by-id (str "track-" (first @queue)))]
+  (when-let [track (utils/by-id (str "track-" (first @queue)))]
+    (dom-classes/enable track "playing" @playing?)
     (utils/busy track (and @playing? (< (. @player readyState) 4)))))
 
 (defn- update-current-time []
@@ -36,7 +27,6 @@
        ""))))
 
 (defn- update-current []
-  (update-current-busy)
   (update-current-state)
   (update-current-time))
 

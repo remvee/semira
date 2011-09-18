@@ -8,8 +8,15 @@ img { border: none; }
 a.play { float: right; font-size: 14px; }
 a.queue { padding: 0 1em; }
 
-.busy {
+html .busy {
     background-image: url("../images/blink.gif");
+}
+.playing {
+    background-color: #eee;
+}
+.busy .playing {
+    transition: all .5s;
+    -moz-transition: all .5s;
 }
 div#container {
     margin: auto;
