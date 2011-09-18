@@ -1,14 +1,12 @@
 (ns semira.frontend.utils
   (:require
+   [semira.frontend.html :as html]
    [cljs.reader :as reader]
    [goog.dom :as dom]
    [goog.dom.classes :as dom-classes]
    [goog.events :as events]
    [goog.string :as gstring]
-   [goog.net.XhrIo :as xhr]
-   [hiccups.runtime :as hiccupsrt])
-  (:require-macros
-   [hiccups.core :as hiccups]))
+   [goog.net.XhrIo :as xhr]))
 
 (defn debug [& args]
   (js/console.log (pr-str args)))
@@ -29,10 +27,10 @@
             :else            (str ":" (padded seconds))))))
 
 (defn h
-  "HTMLize value"
+  "humanize value"
   [val]
-  (cond (string? val) (escape-html val)
-        (sequential? val) (escape-html (apply str (interpose ", " val)))
+  (cond (string? val) val
+        (sequential? val) (apply str (interpose ", " val))
         :else ".."))
 
 (defn interposed-html
@@ -54,10 +52,6 @@
   [coll page]
   (take *page-size*
         (drop (* page *page-size*) coll)))
-
-
-(defn htmlify [v]
-  (hiccups/html v))
 
 (defn map->js [m]
   (let [out (js-obj)]
@@ -82,3 +76,7 @@
 (defn busy [elm state]
   (when elm
     (dom-classes/enable elm "busy" state)))
+
+(defn with-on-click [e f]
+  (events/listen e goog.events.EventType/CLICK f)
+  e)
