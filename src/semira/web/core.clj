@@ -6,6 +6,8 @@
 
 (def app-title "SEMIRA")
 
+(def development-mode (find-ns 'swank.core))
+
 (defn layout [body & [{:keys [title]}]]
   {:status 200
    :headers {"Content-Type" "text/html; charset=UTF-8"}
@@ -17,7 +19,9 @@
                              (hiccup-helpers/include-css "/css/screen.css")]
                             [:body
                              [:div#container body]
-                             (hiccup-helpers/include-js "/js/semira/goog/base.js")
-                             (hiccup-helpers/include-js "/js/semira.js")
-                             [:script {:type "application/javascript"} "goog.require('semira.frontend')"]
-                             ]]))})
+                             (if development-mode
+                               [:div
+                                (hiccup-helpers/include-js "/js/semira/goog/base.js")
+                                (hiccup-helpers/include-js "/js/semira.js")
+                                [:script {:type "application/javascript"} "goog.require('semira.frontend')"]]
+                               (hiccup-helpers/include-js "/js/semira.js"))]]))})

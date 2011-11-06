@@ -58,8 +58,6 @@
     (swap! queue concat [id])))
 
 (defn play-first []
-  (utils/debug "play-first queue" @queue)
-  
   (when (first @queue)
     (let [uri (track-uri (first @queue))
           current (first @queue)]
