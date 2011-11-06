@@ -25,19 +25,21 @@ div#container {
 }
 
 div.header { margin: 0; padding: 5px 8px; background: #000; color: #fff; border-radius: 5px; -moz-border-radius: 5px; }
-div.header a.play { font-size: 18px; font-weight: bold; }
-div.header a.play img { padding: 2px 0; }
 
 ul.albums { list-style: none; margin: 5px 0 0 0; clear: both; padding: 0; border: 1px solid #aaa; background: #fff; border-radius: 5px; -moz-border-radius: 5px;}
-ul.albums li { border-bottom: 1px solid #ccc; padding: 5px 10px; position: relative; }
-ul.albums li a.play img { padding: 3px 0; }
-ul.albums li span.genre, ul.albums li span.year { font-size: smaller; }
+ul.albums li { border-bottom: 1px solid #ccc; padding: 5px 10px; position: relative; min-height: 1em; cursor: pointer; }
+ul.albums li div.album-info { min-height: 1em; }
+ul.albums li.album span { display: block; }
+ul.albums li.track span { display: inline; }
+ul.albums li span.genre, ul.albums li span.year { font-size: smaller; float: right; clear: both; }
 ul.albums li span.album { font-style: italic; }
+.album-info span.artist, .album-info span.album { font-size: 14px; }
+.albums span.artist, .albums span.title { font-weight: bold; }
 
-ol.tracks { list-style-position: inside; border-top: 1px solid #eee; clear: both; margin: 5px 0; padding: 0; }
-ol.tracks li { padding: 5px; position: relative; border-bottom: 1px solid #eee; }
-ol.tracks li .length { float: right; }
-ol.tracks li .status { font-size: smaller; }
+ol.tracks { list-style-position: inside; border-top: 1px solid #eee; clear: both; margin: 5px 0 0 0; padding: 0; }
+ol.tracks li { padding: 5px 0; position: relative; border-bottom: 1px solid #eee; }
+ol.tracks li:last-child { border-bottom: none; }
+ol.tracks li .length { float: right; font-size: smaller; }
 
 li.more { text-align: center; }
 

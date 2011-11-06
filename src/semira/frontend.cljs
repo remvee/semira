@@ -68,11 +68,10 @@
 
 (defn- track-row [track]
   (let [id (:id track)]
-    [:li.track {:id (str "track-" id)}
-     [:a {:onclick #(track-play id)}
+    [:li.track {:id (str "track-" id) :onclick #(track-play id)}
+     [:span.title
       (utils/interposed-html track " / " [:artist :album :title])]
      " "
-     [:a.queue {:onclick #(track-queue id )} "(+)"]
      [:span.status {:id (str "track-status-" id)}]
      [:span.length
       [:span.played {:id (str "track-current-time-" id)}]
@@ -84,8 +83,8 @@
 
 (defn album-row [album]
   [:li.album
-   [:a {:onclick #(album-toggle (:id album))}
-    (utils/interposed-html album " - " [:genre :artist :album :year])]
+   [:div.album-info  {:onclick #(album-toggle (:id album))}
+    (utils/interposed-html album " " [:year :genre :artist :album])]
    " "
    [:div.album  {:id (str "album-" (:id album))}]])
 
