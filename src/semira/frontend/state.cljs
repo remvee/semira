@@ -8,10 +8,10 @@
 (defn clear-albums []
   (reset! albums nil))
 
-(defn more-albums [query callback]
+(defn more-albums [query page-size callback]
   (let [uri (-> "/albums"
                 (uri-utils/appendParam "offset" (count @albums))
-                (uri-utils/appendParam "limit" 15)
+                (uri-utils/appendParam "limit" page-size)
                 (uri-utils/appendParam "query" query))]
     (utils/remote-get uri
                       #(do (swap! albums concat %)

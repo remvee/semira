@@ -7,6 +7,7 @@
    [goog.events :as events]
    [goog.dom :as dom]))
 
+(def page-size 15)
 (declare album-listing album-row album-more-row)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -42,7 +43,7 @@
 
 (defn albums-more []
   (utils/busy (utils/by-id "albums-more") true)
-  (state/more-albums (albums-query) albums-update))
+  (state/more-albums (albums-query) page-size albums-update))
 
 (defn album-toggle [id]
   (album-busy id true)
@@ -87,9 +88,8 @@
    [:div.album  {:id (str "album-" (:id album))}]])
 
 (defn album-more-row []
-  [:li#albums-more.more
-   [:a.more {:onclick albums-more}
-    [:img {:src "/images/more.png" :alt "&rarr;"}]]])
+  [:li#albums-more.more {:onclick albums-more}
+   [:img {:src "/images/more.png" :alt "&rarr;"}]])
 
 ;; dev: rm -rf public/js/semira*; cljsc src '{:output-dir "public/js/semira"}' > public/js/semira.js
 ;; prod: rm -rf public/js/semira*; cljsc src '{:output-dir "public/js/semira" :optimizations :advanced}' > public/js/semira.js
