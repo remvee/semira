@@ -5,9 +5,6 @@ input, button { border-radius: 3px; -moz-border-radius: 3px; border: solid #aaa 
 button { background: #ccc; padding: 2px 4px; }
 img { border: none; }
 
-a.play { float: right; font-size: 14px; }
-a.queue { padding: 0 1em; }
-
 html .busy {
     background-image: url("../images/blink.gif");
 }
@@ -32,7 +29,6 @@ ul.albums li div.album-info { min-height: 1em; }
 ul.albums li.album span { display: block; }
 ul.albums li.track span { display: inline; }
 ul.albums li span.genre, ul.albums li span.year { font-size: smaller; float: right; clear: both; }
-ul.albums li span.album { font-style: italic; }
 .album-info span.artist, .album-info span.album { font-size: 14px; }
 .albums span.artist, .albums span.title { font-weight: bold; }
 

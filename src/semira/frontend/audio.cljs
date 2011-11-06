@@ -58,6 +58,8 @@
     (swap! queue concat [id])))
 
 (defn play-first []
+  (utils/debug "play-first queue" @queue)
+  
   (when (first @queue)
     (let [uri (track-uri (first @queue))
           current (first @queue)]
@@ -70,9 +72,9 @@
       (set! (. @player autoplay) true)
       (reset! playing? true))))
 
-(defn ^:export play [id]
+(defn ^:export play [ids]
   (stop)
-  (swap! queue (fn [queue id] (concat [id] (next queue))) id)
+  (reset! queue ids)
   (play-first))
 
 (defn ^:export pause []

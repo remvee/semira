@@ -50,11 +50,8 @@
     (album-collapse id)
     (state/album id album-update)))
 
-(defn track-play [id]
-  (audio/play id))
-
-(defn track-queue [id]
-  (audio/add id))
+(defn track-play [ids]
+  (audio/play ids))
 
 (events/listen (utils/by-id "search")
                goog.events.EventType/SUBMIT
@@ -66,9 +63,10 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn- track-row [track]
+(defn track-row [track album]
   (let [id (:id track)]
-    [:li.track {:id (str "track-" id) :onclick #(track-play id)}
+    [:li.track {:id (str "track-" id) :onclick #(track-play (drop-while (fn [x] (not= id x))
+                                                                        (map :id (:tracks album))))}
      [:span.title
       (utils/interposed-html track " / " [:artist :album :title])]
      " "
@@ -79,7 +77,7 @@
 
 (defn album-listing [album]
   [:ol.tracks
-   (map track-row (:tracks album))])
+   (map (fn [t] (track-row t album)) (:tracks album))])
 
 (defn album-row [album]
   [:li.album
