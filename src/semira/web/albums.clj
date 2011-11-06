@@ -24,7 +24,7 @@
   (compojure/GET "/" [page query]
                  (web/layout (overview)))
   (compojure/GET "/album/:id" [id]
-                 (let [album (dissoc (models/album-by-id id) :doc)] ; TODO cljs reader bug; can't read "\"foo\""
+                 (let [album (dissoc (models/album-by-id id) :doc)]
                    {:status 200
                     :headers {"Content-Type" "application/clojure; charset=utf-8"}
                     :body (pr-str album)}))
@@ -46,4 +46,4 @@
                    (models/purge))
                  (Thread/sleep 2000)
                  {:status 307
-                  :headers {"Location" "/latest"}}))
+                  :headers {"Location" "/"}}))
