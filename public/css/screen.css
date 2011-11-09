@@ -31,6 +31,7 @@ ul.albums li.track span { display: inline; }
 ul.albums li span.genre, ul.albums li span.year { font-size: smaller; float: right; clear: both; }
 .album-info span.artist, .album-info span.album { font-size: 14px; }
 .albums span.artist, .albums span.title { font-weight: bold; }
+ul.albums li.not-found { font-style: italic; text-align: center; }
 
 ol.tracks { list-style-position: inside; border-top: 1px solid #eee; clear: both; margin: 5px 0 0 0; padding: 0; }
 ol.tracks li { padding: 5px 0; position: relative; border-bottom: 1px solid #eee; }

@@ -8,7 +8,7 @@
    [goog.dom :as dom]))
 
 (def page-size 15)
-(declare album-listing album-row album-more-row)
+(declare album-listing album-row album-more-row album-not-found)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -30,16 +30,22 @@
 (defn albums-update [albums & {offset :offset end-reached :end-reached}]
   (utils/busy (utils/by-id "albums-more") false)
   (let [container (utils/by-id "albums")]
-    (if (or (nil? offset) (= offset 0))
-      (do
-        (dom/removeChildren container)
-        (doseq [row (map album-row albums)]
-          (dom/append container (html/build row))))
-      (do
-        (when (utils/by-id "albums-more")
-          (dom/removeNode (utils/by-id "albums-more")))
-        (doseq [row (map album-row (drop offset albums))]
-          (dom/append container (html/build row)))))
+    (cond (empty? albums)
+          (do (dom/removeChildren container)
+              (dom/append container (html/build (album-not-found))))
+
+          (or (nil? offset) (= offset 0))
+          (do
+            (dom/removeChildren container)
+            (doseq [row (map album-row albums)]
+              (dom/append container (html/build row))))
+
+          :else
+          (do
+            (when (utils/by-id "albums-more")
+              (dom/removeNode (utils/by-id "albums-more")))
+            (doseq [row (map album-row (drop offset albums))]
+              (dom/append container (html/build row)))))
     (when-not end-reached
       (dom/append container (html/build (album-more-row))))))
 
@@ -94,6 +100,9 @@
     (utils/interposed-html album " " [:year :genre :artist :album])]
    " "
    [:div.album  {:id (str "album-" (:id album))}]])
+
+(defn album-not-found []
+  [:li.not-found "not found.."])
 
 (defn album-more-row []
   [:li#albums-more.more {:onclick albums-more}
