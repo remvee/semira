@@ -9,13 +9,14 @@
   (reset! albums nil))
 
 (defn more-albums [query page-size callback]
-  (let [uri (-> "/albums"
-                (uri-utils/appendParam "offset" (count @albums))
-                (uri-utils/appendParam "limit" page-size)
+  (let [offset (count @albums)
+        uri (-> "/albums"
+                (uri-utils/appendParam "offset" offset)
+                (uri-utils/appendParam "limit" (inc page-size))
                 (uri-utils/appendParam "query" query))]
     (utils/remote-get uri
-                      #(do (swap! albums concat %)
-                           (callback @albums)))))
+                      #(do (swap! albums concat (take page-size %))
+                           (callback @albums :offset offset :end-reached (> page-size (count %)))))))
 
 (defn album [id callback]
   (let [album (first (filter #(= id (:id %)) @albums))]

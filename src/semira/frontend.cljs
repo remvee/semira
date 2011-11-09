@@ -27,13 +27,21 @@
   (album-busy id false)
   (dom/removeChildren (album-container id)))
 
-(defn albums-update [albums]
+(defn albums-update [albums & {offset :offset end-reached :end-reached}]
   (utils/busy (utils/by-id "albums-more") false)
   (let [container (utils/by-id "albums")]
-    (dom/removeChildren container)
-    (doseq [row (map album-row albums)]
-      (dom/append container (html/build row)))
-    (dom/append container (html/build (album-more-row)))))
+    (if (or (nil? offset) (= offset 0))
+      (do
+        (dom/removeChildren container)
+        (doseq [row (map album-row albums)]
+          (dom/append container (html/build row))))
+      (do
+        (when (utils/by-id "albums-more")
+          (dom/removeNode (utils/by-id "albums-more")))
+        (doseq [row (map album-row (drop offset albums))]
+          (dom/append container (html/build row)))))
+    (when-not end-reached
+      (dom/append container (html/build (album-more-row))))))
 
 (defn album-update [album]
   (album-busy (:id album) false)
