@@ -15,8 +15,9 @@
                 (uri-utils/appendParam "limit" (inc page-size))
                 (uri-utils/appendParam "query" query))]
     (utils/remote-get uri
-                      #(do (swap! albums concat (take page-size %))
-                           (callback @albums :offset offset :end-reached (> page-size (count %)))))))
+                      #(do (when (= offset (count @albums))
+                             (swap! albums concat (take page-size %))
+                             (callback @albums :offset offset :end-reached (> page-size (count %))))))))
 
 (defn album [id callback]
   (let [album (first (filter #(= id (:id %)) @albums))]
