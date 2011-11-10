@@ -28,7 +28,9 @@
   (dom/removeChildren (album-container id)))
 
 (defn albums-update [albums & {offset :offset end-reached :end-reached}]
-  (utils/busy (utils/by-id "albums-more") false)
+  (doseq [id ["albums-more" "search-query"]]
+    (utils/busy (utils/by-id id) false))
+
   (let [container (utils/by-id "albums")]
     (cond (empty? albums)
           (do (dom/removeChildren container)
@@ -65,14 +67,18 @@
     (album-collapse id)
     (state/album id album-update)))
 
+(defn album-search []
+  (utils/busy (utils/by-id "search-query") true)
+  (state/clear-albums)
+  (albums-more))
+
 (defn track-play [ids]
   (audio/play ids))
 
 (events/listen (utils/by-id "search")
                goog.events.EventType/SUBMIT
                #(do (. % (preventDefault))
-                    (state/clear-albums)
-                    (albums-more)))
+                    (album-search)))
 
 (albums-more)
 
