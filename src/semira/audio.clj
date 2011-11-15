@@ -63,6 +63,9 @@
     (if-let [val (re-find #"\d+" (first vals))]
       (Integer/valueOf val))))
 
+(defn to-year [vals]
+  (first (filter identity (map #(re-find #"\d{4}" %) vals))))
+
 (defn translate-genres [vals]
   (and (first vals)
        (vec (map (fn [val]
@@ -78,7 +81,7 @@
    :disc_total  to-i
    :album       first
    :title       first
-   :year        first
+   :year        to-year
    :conductor   first
    :genre       translate-genres})
 
@@ -103,9 +106,9 @@
     (merge-with #(or %1 %2)
                 (base-tag-fields tag)
                 {:genre (vec (map field-str (.get tag Mp4FieldKey/GENRE_CUSTOM)))}
-                (if-let [[_ track _ track_total] (re-matches #"(\d+)(/(\d+))?" (str track))]
-                  {:track (Integer/parseInt track)
-                   :track_total (Integer/parseInt track_total)}))))
+                (let [[_ track _ track-total] (re-matches #"(\d+)(/(\d+))?" (str track))]
+                  {:track (and track (Integer/parseInt track))
+                   :track_total (and track-total (Integer/parseInt track-total))}))))
 
 (defn info
   "Pull meta data from audio file."
