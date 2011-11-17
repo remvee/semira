@@ -73,7 +73,9 @@
   (albums-more))
 
 (defn track-play [ids]
-  (audio/play ids))
+  (if (= (first ids) (audio/current))
+    (audio/play-pause)
+    (audio/play ids)))
 
 (events/listen (utils/by-id "search")
                goog.events.EventType/SUBMIT
@@ -86,8 +88,9 @@
 
 (defn track-row [track album]
   (let [id (:id track)]
-    [:li.track {:id (str "track-" id) :onclick #(track-play (drop-while (fn [x] (not= id x))
-                                                                        (map :id (:tracks album))))}
+    [:li.track {:id (str "track-" id)
+                :onclick #(track-play (drop-while (fn [x] (not= id x))
+                                                  (map :id (:tracks album))))}
      [:span.title
       (utils/interposed-html track " / " [:artist :album :title])]
      " "

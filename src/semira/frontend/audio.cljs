@@ -13,13 +13,15 @@
 
 (def player (atom (new js/Audio "")))
 
+(defn current [] (first @queue))
+
 (defn- update-current-state []
-  (when-let [track (utils/by-id (str "track-" (first @queue)))]
+  (when-let [track (utils/by-id (str "track-" (current)))]
     (dom-classes/enable track "playing" @playing?)
     (utils/busy track (and @playing? (< (. @player readyState) 4)))))
 
 (defn- update-current-time []
-  (if-let [current-time (utils/by-id (str "track-current-time-" (first @queue)))]
+  (if-let [current-time (utils/by-id (str "track-current-time-" (current)))]
     (utils/inner-html
      current-time
      (if @playing?
@@ -45,39 +47,35 @@
       (uri-utils/appendParam uri "wait" true)
       uri)))
 
-(defn ^:export stop []
+(defn stop []
   (reset! playing? false)
   (events/removeAll @player)
   (try
     (set! (. @player src) "")
     (. @player (load))
     (catch js/Error e))
-  (update-current)
+  (update-current))
 
-  (defn ^:export add [id]
-    (swap! queue concat [id])))
+(defn- play-first []
+  (when (current)
+    (reset! player (new js/Audio (track-uri (current))))
+    (events/listen @player "ended"
+                   (fn []
+                     (stop)
+                     (swap! queue next)
+                     (play-first)))
+    (set! (. @player autoplay) true)
+    (reset! playing? true)))
 
-(defn play-first []
-  (when (first @queue)
-    (let [uri (track-uri (first @queue))
-          current (first @queue)]
-      (reset! player (new js/Audio uri))
-      (events/listen @player "ended"
-                     (fn []
-                       (stop)
-                       (swap! queue next)
-                       (play-first)))
-      (set! (. @player autoplay) true)
-      (reset! playing? true))))
-
-(defn ^:export play [ids]
+(defn play [ids]
   (stop)
   (reset! queue ids)
   (play-first))
 
-(defn ^:export pause []
-  (. @player (pause))
-  (reset! playing? false))
+(defn play-pause []
+  (if (. @player paused)
+    (. @player (play))
+    (. @player (pause))))
 
 (let [timer (goog.Timer. 1000)]
   (events/listen timer goog.Timer/TICK update-current)
