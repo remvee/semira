@@ -1,14 +1,15 @@
-html { background: #ccc; }
+html { background: #ddd; }
 body { line-height: 1.5; margin: 0; font-family: Arial, Helvetica, sans-serif; font-size: 12px; }
 a, a:link, a:visited { text-decoration: none; color: blue; cursor: pointer; }
-input, button { border-radius: 3px; -moz-border-radius: 3px; border: solid #aaa 1px; font-size: 12px; padding: 2px; }
+input, button { border-radius: 3px; -moz-border-radius: 3px; border: solid #aaa 1px; font-size: 14px; padding: 4px; }
 button { background: #ccc; padding: 2px 4px; }
 img { border: none; }
 
 html .busy {
+    background-color: #ddd;
     background-image: url("../images/blink.gif");
 }
-.playing {
+.playing .playing, .playing .album-info {
     background-color: #eee;
 }
 .busy .playing {
@@ -21,11 +22,11 @@ div#container {
     max-width: 50em;
 }
 
-div.header { margin: 0; padding: 5px 8px; background: #000; color: #fff; border-radius: 5px; -moz-border-radius: 5px; }
+div.header { margin: 0; padding: 0; }
 
 ul.albums { list-style: none; margin: 5px 0 0 0; clear: both; padding: 0; border: 1px solid #aaa; background: #fff; border-radius: 5px; -moz-border-radius: 5px;}
-ul.albums li { border-bottom: 1px solid #ccc; padding: 5px 10px; position: relative; cursor: pointer; }
-ul.albums li div.album-info { min-height: 34px; }
+ul.albums li { border-bottom: 1px solid #ccc; position: relative; cursor: pointer; }
+ul.albums li div.album-info { min-height: 34px; padding: 5px 10px; }
 ul.albums li.album span { display: block; }
 ul.albums li.track span { display: inline; }
 ul.albums li span.genre, ul.albums li span.year { font-size: smaller; float: right; clear: both; }
@@ -33,17 +34,15 @@ ul.albums li span.genre, ul.albums li span.year { font-size: smaller; float: rig
 .albums span.artist, .albums span.title { font-weight: bold; }
 ul.albums li.not-found { font-style: italic; text-align: center; }
 
-ol.tracks { list-style-position: inside; border-top: 1px solid #eee; clear: both; margin: 5px 0 0 0; padding: 0; }
-ol.tracks li { padding: 5px 0; position: relative; border-bottom: 1px solid #eee; }
+ol.tracks { list-style-position: inside; border-top: 1px solid #ddd; clear: both; margin: 0; padding: 0; }
+ol.tracks li { padding: 5px 10px; position: relative; border-bottom: 1px solid #ddd; }
 ol.tracks li:last-child { border-bottom: none; }
 ol.tracks li .length { float: right; font-size: smaller; }
 
-li.more { text-align: center; }
+li#albums-more { text-align: center; padding: 10px 0 5px 0; }
 
 .header { display: table; margin: 0; padding: 0; }
 .search { display: table-row; }
 .search span { display: table-cell; vertical-align: middle; }
-.search span.input { width: 100%; padding-right: 4px; }
+.search span.input { width: 100%; padding-right: 12px; }
 .search input { width: 100%; }
-.header div.player { display: table-row; }
-.header div.player span { width: table-cell; }

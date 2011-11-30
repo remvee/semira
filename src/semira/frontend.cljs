@@ -47,7 +47,10 @@
             (when (utils/by-id "albums-more")
               (dom/removeNode (utils/by-id "albums-more")))
             (doseq [row (map album-row (drop offset albums))]
-              (dom/append container (html/build row)))))
+              (dom/append container (html/build row)))
+            (set! (.. js/window location hash)
+                  (str "album-"
+                       (:id (first (drop (dec offset) albums)))))))
     (when-not end-reached
       (dom/append container (html/build (album-more-row))))))
 
@@ -72,10 +75,10 @@
   (state/clear-albums)
   (albums-more))
 
-(defn track-play [ids]
-  (if (= (first ids) (audio/current))
+(defn track-play [tracks]
+  (if (= (first tracks) (audio/current))
     (audio/play-pause)
-    (audio/play ids)))
+    (audio/play tracks)))
 
 (events/listen (utils/by-id "search")
                goog.events.EventType/SUBMIT
@@ -89,8 +92,9 @@
 (defn track-row [track album]
   (let [id (:id track)]
     [:li.track {:id (str "track-" id)
-                :onclick #(track-play (drop-while (fn [x] (not= id x))
-                                                  (map :id (:tracks album))))}
+                :onclick #(track-play (drop-while (fn [x] (not= id (:id x)))
+                                                  (map (fn [x] {:id (:id x) :album-id (:id album)})
+                                                       (:tracks album))))}
      [:span.title
       (utils/interposed-html track " / " [:artist :album :title])]
      " "

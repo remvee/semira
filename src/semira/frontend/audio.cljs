@@ -16,12 +16,14 @@
 (defn current [] (first @queue))
 
 (defn- update-current-state []
-  (when-let [track (utils/by-id (str "track-" (current)))]
+  (when-let [track (utils/by-id (str "track-" (:id (current))))]
     (dom-classes/enable track "playing" @playing?)
-    (utils/busy track (and @playing? (< (. @player readyState) 4)))))
+    (utils/busy track (and @playing? (< (. @player readyState) 4))))
+  (when-let [album (utils/by-id (str "album-" (:album-id (current))))]
+    (dom-classes/enable (.parentNode album) "playing" @playing?)))
 
 (defn- update-current-time []
-  (if-let [current-time (utils/by-id (str "track-current-time-" (current)))]
+  (if-let [current-time (utils/by-id (str "track-current-time-" (:id (current))))]
     (utils/inner-html
      current-time
      (if @playing?
@@ -32,7 +34,7 @@
   (update-current-state)
   (update-current-time))
 
-(defn- track-uri [id]
+(defn- track-uri [{id :id}]
   (let [uri (cond (and (. @player canPlayType)
                        (not= "" (. @player canPlayType "audio/mpeg")))
                   (str "/stream/track/" id ".mp3")
@@ -67,9 +69,9 @@
     (set! (. @player autoplay) true)
     (reset! playing? true)))
 
-(defn play [ids]
+(defn play [tracks]
   (stop)
-  (reset! queue ids)
+  (reset! queue tracks)
   (play-first))
 
 (defn play-pause []
