@@ -5,12 +5,14 @@
    [semira.frontend.state :as state]
    [semira.frontend.utils :as utils]
    [goog.events :as events]
-   [goog.dom :as dom]))
+   [goog.dom :as dom]
+   [goog.dom.classes :as dom-classes]))
 
 (def page-size 15)
-(declare album-listing album-row album-more-row album-not-found)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(declare album-listing album-row album-more-row album-not-found)
 
 (defn albums-query []
   (let [input (utils/by-id "search-query")]
@@ -64,6 +66,8 @@
   (utils/busy (utils/by-id "albums-more") true)
   (state/more-albums (albums-query) page-size albums-update))
 
+(albums-more)
+
 (defn album-toggle [id]
   (album-busy id true)
   (if (utils/first-by-tag-class "ol" "tracks" (album-container id))
@@ -75,19 +79,39 @@
   (state/clear-albums)
   (albums-more))
 
-(defn track-play [tracks]
-  (if (= (first tracks) (audio/current))
-    (audio/play-pause)
-    (audio/play tracks)))
-
 (events/listen (utils/by-id "search")
                goog.events.EventType/SUBMIT
                #(do (. % (preventDefault))
                     (album-search)))
 
-(albums-more)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defn track-play [tracks]
+  (if (= (first tracks) (audio/current))
+    (audio/play-pause)
+    (audio/play tracks)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn update-current-state []
+  (when-let [track (utils/by-id (str "track-" (:id (audio/current))))]
+    (dom-classes/enable track "playing" (audio/playing?))
+    (utils/busy track (and (audio/loading?))))
+  (when-let [album (utils/by-id (str "album-" (:album-id (audio/current))))]
+    (dom-classes/enable (.parentNode album) "playing" (audio/playing?))))
+
+(defn update-current-time []
+  (if-let [track-current-time (utils/by-id (str "track-current-time-" (:id (audio/current))))]
+    (utils/inner-html
+     track-current-time
+     (if (audio/playing?)
+       (str (utils/seconds->time (js/Math.round (audio/current-time))) " / ")
+       ""))))
+
+(swap! audio/update-current-fns conj update-current-state)
+(swap! audio/update-current-fns conj update-current-time)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn track-row [track album]
   (let [id (:id track)]
@@ -120,6 +144,3 @@
 (defn album-more-row []
   [:li#albums-more.more {:onclick albums-more}
    [:img {:src "/images/more.png" :alt "&rarr;"}]])
-
-;; dev: rm -rf public/js/semira*; cljsc src '{:output-dir "public/js/semira"}' > public/js/semira.js
-;; prod: rm -rf public/js/semira*; cljsc src '{:output-dir "public/js/semira" :optimizations :advanced}' > public/js/semira.js

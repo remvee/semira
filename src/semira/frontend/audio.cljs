@@ -1,38 +1,40 @@
 (ns semira.frontend.audio
   (:require
-   [semira.frontend.utils :as utils]
-   [goog.dom.classes :as dom-classes]
    [goog.events :as events]
-   [goog.Timer :as timer]
    [goog.uri.utils :as uri-utils]
    [goog.userAgent :as user-agent]))
 
 (def queue (atom ()))
-
-(def playing? (atom false))
-
 (def player (atom (new js/Audio "")))
+(def playing-state (atom false))
 
-(defn current [] (first @queue))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn- update-current-state []
-  (when-let [track (utils/by-id (str "track-" (:id (current))))]
-    (dom-classes/enable track "playing" @playing?)
-    (utils/busy track (and @playing? (< (. @player readyState) 4))))
-  (when-let [album (utils/by-id (str "album-" (:album-id (current))))]
-    (dom-classes/enable (.parentNode album) "playing" @playing?)))
+(defn current []
+  (first @queue))
 
-(defn- update-current-time []
-  (if-let [current-time (utils/by-id (str "track-current-time-" (:id (current))))]
-    (utils/inner-html
-     current-time
-     (if @playing?
-       (str (utils/seconds->time (js/Math.round (. @player currentTime))) " / ")
-       ""))))
+(defn current-time []
+  (. @player currentTime))
+
+(defn playing? []
+  @playing-state)
+
+(defn loading? []
+  (and @playing-state
+       (< (. @player readyState) 4)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(def update-current-fns (atom ()))
 
 (defn- update-current []
-  (update-current-state)
-  (update-current-time))
+  (doseq [fn @update-current-fns] (fn)))
+
+(let [timer (goog.Timer. 1000)]
+  (events/listen timer goog.Timer/TICK update-current)
+  (. timer (start)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn- track-uri [{id :id}]
   (let [uri (cond (and (. @player canPlayType)
@@ -50,7 +52,7 @@
       uri)))
 
 (defn stop []
-  (reset! playing? false)
+  (reset! playing-state false)
   (events/removeAll @player)
   (try
     (set! (. @player src) "")
@@ -67,7 +69,8 @@
                      (swap! queue next)
                      (play-first)))
     (set! (. @player autoplay) true)
-    (reset! playing? true)))
+    (reset! playing-state true)
+    (update-current)))
 
 (defn play [tracks]
   (stop)
@@ -78,10 +81,6 @@
   (if (. @player paused)
     (. @player (play))
     (. @player (pause))))
-
-(let [timer (goog.Timer. 1000)]
-  (events/listen timer goog.Timer/TICK update-current)
-  (. timer (start)))
 
 ;; android:
 ;; * can not play without content-length
