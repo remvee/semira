@@ -1,9 +1,31 @@
-html { background: #ddd; }
-body { line-height: 1.5; margin: 0; font-family: Arial, Helvetica, sans-serif; font-size: 12px; }
-a, a:link, a:visited { text-decoration: none; color: blue; cursor: pointer; }
-input, button { border-radius: 3px; -moz-border-radius: 3px; border: solid #aaa 1px; font-size: 14px; padding: 4px; }
-button { background: #ccc; padding: 2px 4px; }
-img { border: none; }
+html { 
+    background: #ddd; 
+}
+body { 
+    line-height: 1.5; 
+    margin: 0; 
+    font-family: Arial, Helvetica, sans-serif; 
+    font-size: 12px; 
+}
+a, a:link, a:visited { 
+    text-decoration: none; 
+    color: blue; 
+    cursor: pointer; 
+}
+input, button { 
+    border-radius: 3px; 
+    -moz-border-radius: 3px; 
+    border: solid #aaa 1px; 
+    font-size: 14px; 
+    padding: 4px; 
+}
+button { 
+    background: #ccc; 
+    padding: 2px 4px; 
+}
+img { 
+    border: none; 
+}
 
 html .busy {
     background-color: #ddd;
@@ -22,27 +44,129 @@ div#container {
     max-width: 50em;
 }
 
-div.header { margin: 0; padding: 0; }
+div.header { 
+    margin: 0; 
+    padding: 0; 
+}
 
-ul.albums { list-style: none; margin: 5px 0 0 0; clear: both; padding: 0; border: 1px solid #aaa; background: #fff; border-radius: 5px; -moz-border-radius: 5px;}
-ul.albums li { border-bottom: 1px solid #ccc; position: relative; cursor: pointer; }
-ul.albums li div.album-info { min-height: 34px; padding: 5px 10px; }
-ul.albums li.album span { display: block; }
-ul.albums li.track span { display: inline; }
-ul.albums li span.genre, ul.albums li span.year { font-size: smaller; float: right; clear: both; }
-.album-info span.artist, .album-info span.album { font-size: 14px; }
-.albums span.artist, .albums span.title { font-weight: bold; }
-ul.albums li.not-found { font-style: italic; text-align: center; }
+ul.albums { 
+    list-style: none; 
+    margin: 5px 0 0 0; 
+    clear: both; 
+    padding: 0; 
+    border: 1px solid #aaa; 
+    background: #fff; 
+    border-radius: 5px; 
+    -moz-border-radius: 5px;
+}
+ul.albums li { 
+    border-bottom: 1px solid #ccc; 
+    position: relative; 
+    cursor: pointer; 
+}
+ul.albums li div.album-info { 
+    min-height: 34px; 
+    padding: 5px 10px; 
+}
+ul.albums li.album span { 
+    display: block; 
+}
+ul.albums li.track span { 
+    display: inline; 
+}
+ul.albums li span.genre, ul.albums li span.year { 
+    font-size: smaller; 
+    float: right; 
+    clear: both; 
+}
+.album-info span.artist, .album-info span.album { 
+    font-size: 14px; 
+}
+.albums span.artist, .albums span.title { 
+    font-weight: bold; 
+}
+ul.albums li.not-found { 
+    font-style: italic; 
+    text-align: center; 
+}
 
-ol.tracks { list-style-position: inside; border-top: 1px solid #ddd; clear: both; margin: 0; padding: 0; }
-ol.tracks li { padding: 5px 10px; position: relative; border-bottom: 1px solid #ddd; }
-ol.tracks li:last-child { border-bottom: none; }
-ol.tracks li .length { float: right; font-size: smaller; }
+ol.tracks { 
+    list-style-position: inside; 
+    border-top: 1px solid #ddd; 
+    clear: both; 
+    margin: 0; 
+    padding: 0; 
+}
+ol.tracks li { 
+    padding: 5px 10px; 
+    position: relative; 
+    border-bottom: 1px solid #ddd; 
+}
+ol.tracks li:last-child { 
+    border-bottom: none; 
+}
+ol.tracks li .length { 
+    float: right; 
+    font-size: smaller; 
+}
 
-li#albums-more { text-align: center; padding: 10px 0 5px 0; }
+li#albums-more { 
+    text-align: center; 
+    padding: 10px 0 5px 0; 
+}
 
-.header { display: table; margin: 0; padding: 0; }
-.search { display: table-row; }
-.search span { display: table-cell; vertical-align: middle; }
-.search span.input { width: 100%; padding-right: 12px; }
-.search input { width: 100%; }
+.header { 
+    display: table; 
+    margin: 0; 
+    padding: 0; 
+}
+.search { 
+    display: table-row; 
+}
+.search span { 
+    display: table-cell; 
+    vertical-align: middle; 
+}
+.search span.input { 
+    width: 100%; 
+    padding-right: 12px; 
+}
+.search input { 
+    width: 100%; 
+}
+
+body.rss h1 {
+    margin: 0 0 5px 0;
+}
+body.rss h2 {
+    margin: 0 0 5px 0;
+}
+body.rss #container #header, body.rss #container .items { 
+    clear: both; 
+    padding: 0; 
+    border: 1px solid #aaa; 
+    background: #fff; 
+    border-radius: 5px; 
+    -moz-border-radius: 5px; 
+    padding: 5px 10px; 
+    margin-bottom: 5px; 
+}
+body.rss .items {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+body.rss .item {
+    padding: 0 0 5px 0;
+    margin: 0 0 5px 0;
+    border-bottom: 1px solid #ccc;
+}
+
+body.rss .items li:last-child { 
+    border-bottom: none; 
+}
+body.rss .pubDate {
+    margin-top: 1em;
+    font-size: smaller;
+    text-align: right;
+}
