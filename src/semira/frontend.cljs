@@ -50,9 +50,8 @@
               (dom/removeNode (utils/by-id "albums-more")))
             (doseq [row (map album-row (drop offset albums))]
               (dom/append container (html/build row)))
-            (set! (.. js/window location hash)
-                  (str "album-"
-                       (:id (first (drop (dec offset) albums)))))))
+            (utils/scroll-into-view (str "album-"
+                                         (:id (first (drop (dec offset) albums)))))))
     (when-not end-reached
       (dom/append container (html/build (album-more-row))))))
 
