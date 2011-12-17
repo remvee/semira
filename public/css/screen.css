@@ -40,8 +40,8 @@ html .busy {
 }
 div#container {
     margin: auto;
-    padding: 5px;
-    max-width: 50em;
+    padding: 3px;
+    max-width: 600px;
 }
 
 div.header { 
@@ -51,13 +51,13 @@ div.header {
 
 ul.albums { 
     list-style: none; 
-    margin: 5px 0 0 0; 
+    margin: 3px 0 0 0; 
     clear: both; 
     padding: 0; 
     border: 1px solid #aaa; 
     background: #fff; 
-    border-radius: 5px; 
-    -moz-border-radius: 5px;
+    border-radius: 3px; 
+    -moz-border-radius: 3px;
 }
 ul.albums li { 
     border-bottom: 1px solid #ccc; 
@@ -66,7 +66,7 @@ ul.albums li {
 }
 ul.albums li div.album-info { 
     min-height: 34px; 
-    padding: 5px 10px; 
+    padding: 3px 8px; 
 }
 ul.albums li.album span { 
     display: block; 
@@ -98,9 +98,9 @@ ol.tracks {
     padding: 0; 
 }
 ol.tracks li { 
-    padding: 5px 10px; 
+    padding: 3px 8px;
     position: relative; 
-    border-bottom: 1px solid #ddd; 
+    border-bottom: 1px solid #f8f8f8; 
 }
 ol.tracks li:last-child { 
     border-bottom: none; 
@@ -112,7 +112,7 @@ ol.tracks li .length {
 
 li#albums-more { 
     text-align: center; 
-    padding: 10px 0 5px 0; 
+    padding: 8px 0 3px 0; 
 }
 
 .header { 
@@ -136,20 +136,20 @@ li#albums-more {
 }
 
 body.rss h1 {
-    margin: 0 0 5px 0;
+    margin: 0 0 3px 0;
 }
 body.rss h2 {
-    margin: 0 0 5px 0;
+    margin: 0 0 3px 0;
 }
 body.rss #container #header, body.rss #container .items { 
     clear: both; 
     padding: 0; 
     border: 1px solid #aaa; 
     background: #fff; 
-    border-radius: 5px; 
-    -moz-border-radius: 5px; 
-    padding: 5px 10px; 
-    margin-bottom: 5px; 
+    border-radius: 3px; 
+    -moz-border-radius: 3px; 
+    padding: 3px 8px; 
+    margin-bottom: 3px; 
 }
 body.rss .items {
     list-style: none;
@@ -157,8 +157,8 @@ body.rss .items {
     padding: 0;
 }
 body.rss .item {
-    padding: 0 0 5px 0;
-    margin: 0 0 5px 0;
+    padding: 0 0 3px 0;
+    margin: 0 0 3px 0;
     border-bottom: 1px solid #ccc;
 }
 
@@ -169,4 +169,21 @@ body.rss .pubDate {
     margin-top: 1em;
     font-size: smaller;
     text-align: right;
+}
+
+@media (max-width: 600px) {
+    div#container { 
+        margin: 0;
+        padding: 0;
+    }
+    div.header {
+        padding: 3px;
+        border-bottom: solid #ccc 1px;
+    }
+    ul.albums {
+        margin: 0;
+        border: none;
+        border-radius: 0;
+        -moz-border-radius: 0;
+    }
 }
