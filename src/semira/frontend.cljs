@@ -15,8 +15,10 @@
 (declare album-listing album-row album-more-row album-not-found)
 
 (defn albums-query []
-  (let [input (utils/by-id "search-query")]
-    (. input value)))
+  (. (utils/by-id "search-query") value))
+
+(let [query (utils/url-decode (.replace (.. js/window location hash) #"^#" ""))]
+  (set! (. (utils/by-id "search-query") value) query))
 
 (defn album-container [id]
   (utils/by-id (str "album-" id)))
@@ -75,6 +77,7 @@
 
 (defn album-search []
   (utils/busy (utils/by-id "search-query") true)
+  (set! (.. js/window location hash) (utils/url-encode (albums-query)))
   (state/clear-albums)
   (albums-more))
 
