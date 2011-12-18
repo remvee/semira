@@ -14,12 +14,6 @@
 (defn escape-html [value]
   (gstring/htmlEscape value))
 
-(defn url-encode [value]
-  (gstring/urlEncode value))
-
-(defn url-decode [value]
-  (gstring/urlDecode value))
-
 (defn seconds->time
   "Write seconds as HH:MM:SS."
   [i]

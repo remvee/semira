@@ -6,7 +6,8 @@
    [semira.frontend.utils :as utils]
    [goog.events :as events]
    [goog.dom :as dom]
-   [goog.dom.classes :as dom-classes]))
+   [goog.dom.classes :as dom-classes]
+   [goog.History :as hist]))
 
 (def page-size 15)
 
@@ -17,7 +18,9 @@
 (defn albums-query []
   (. (utils/by-id "search-query") value))
 
-(let [query (utils/url-decode (.replace (.. js/window location hash) #"^#" ""))]
+(def history (goog.History.))
+
+(let [query (. history (getToken))]
   (set! (. (utils/by-id "search-query") value) query))
 
 (defn album-container [id]
@@ -77,7 +80,7 @@
 
 (defn album-search []
   (utils/busy (utils/by-id "search-query") true)
-  (set! (.. js/window location hash) (utils/url-encode (albums-query)))
+  (. history (replaceToken (albums-query)))
   (state/clear-albums)
   (albums-more))
 
