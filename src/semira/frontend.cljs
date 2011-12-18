@@ -55,8 +55,8 @@
               (dom/removeNode (utils/by-id "albums-more")))
             (doseq [row (map album-row (drop offset albums))]
               (dom/append container (html/build row)))
-            (utils/scroll-into-view (str "album-"
-                                         (:id (first (drop (dec offset) albums)))))))
+            (utils/scroll-into-view (utils/by-id (str "album-"
+                                                      (:id (first (drop (dec offset) albums))))))))
     (when-not end-reached
       (dom/append container (html/build (album-more-row))))))
 
@@ -68,6 +68,7 @@
 
 (defn albums-more []
   (utils/busy (utils/by-id "albums-more") true)
+  (utils/scroll-into-view (utils/by-id "albums-more")) ; workaround android browser jumping to top somethings (why does it do that?)
   (state/more-albums (albums-query) page-size albums-update))
 
 (albums-more)

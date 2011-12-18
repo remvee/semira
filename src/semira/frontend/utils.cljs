@@ -81,5 +81,6 @@
   (events/listen e goog.events.EventType/CLICK f)
   e)
 
-(defn scroll-into-view [e]
-  (. (by-id e) (scrollIntoView)))
+(defn scroll-into-view [elm]
+  (when elm
+    (. elm (scrollIntoView))))
