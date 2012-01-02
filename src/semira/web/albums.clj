@@ -20,7 +20,8 @@
   [:div
    (overview-header "")
    [:ul#albums.albums
-    [:li#albums-more ".."]]])
+    [:li#albums-more ".."]]
+   [:audio#player {:controls true :style "display:none;margin-left:-1000px"} ""]])
 
 (defn tracks [album]
   (hiccup/html

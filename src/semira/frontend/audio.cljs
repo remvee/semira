@@ -1,11 +1,12 @@
 (ns semira.frontend.audio
   (:require
+   [semira.frontend.utils :as utils]
    [goog.events :as events]
    [goog.uri.utils :as uri-utils]
    [goog.userAgent :as user-agent]))
 
 (def queue (atom ()))
-(def player (atom (new js/Audio "")))
+(def player (atom (utils/by-id "player")))
 (def playing-state (atom false))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -62,13 +63,15 @@
 
 (defn- play-first []
   (when (current)
-    (reset! player (new js/Audio (track-uri (current))))
+    (. @player (pause))
+    (set! (. @player autoplay) true)
+    (set! (. @player src) (track-uri (current)))
+    (. @player (load))
     (events/listen @player "ended"
                    (fn []
                      (stop)
                      (swap! queue next)
                      (play-first)))
-    (set! (. @player autoplay) true)
     (reset! playing-state true)
     (update-current)))
 
