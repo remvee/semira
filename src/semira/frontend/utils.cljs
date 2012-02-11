@@ -71,7 +71,7 @@
   (aget (by-tag-class tag class elm) 0))
 
 (defn inner-html [elm html]
-  (set! (. elm innerHTML) html))
+  (set! (. elm -innerHTML) html))
 
 (defn busy [elm state]
   (when elm

@@ -16,12 +16,12 @@
 (declare album-listing album-row album-more-row album-not-found)
 
 (defn albums-query []
-  (. (utils/by-id "search-query") value))
+  (. (utils/by-id "search-query") -value))
 
 (def history (goog.History.))
 
 (let [query (. history (getToken))]
-  (set! (. (utils/by-id "search-query") value) query))
+  (set! (. (utils/by-id "search-query") -value) query))
 
 (defn album-container [id]
   (utils/by-id (str "album-" id)))
@@ -104,7 +104,7 @@
     (dom-classes/enable track "playing" (audio/playing?))
     (utils/busy track (and (audio/loading?))))
   (when-let [album (utils/by-id (str "album-" (:album-id (audio/current))))]
-    (dom-classes/enable (.parentNode album) "playing" (audio/playing?))))
+    (dom-classes/enable (. album -parentNode) "playing" (audio/playing?))))
 
 (defn update-current-time []
   (if-let [track-current-time (utils/by-id (str "track-current-time-" (:id (audio/current))))]

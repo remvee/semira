@@ -15,14 +15,14 @@
   (first @queue))
 
 (defn current-time []
-  (. @player currentTime))
+  (. @player -currentTime))
 
 (defn playing? []
   @playing-state)
 
 (defn loading? []
   (and @playing-state
-       (< (. @player readyState) 4)))
+       (< (. @player -readyState) 4)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -38,11 +38,11 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn- track-uri [{id :id}]
-  (let [uri (cond (and (. @player canPlayType)
+  (let [uri (cond (and (. @player -canPlayType)
                        (not= "" (. @player canPlayType "audio/mpeg")))
                   (str "/stream/track/" id ".mp3")
 
-                  (and (. @player canPlayType)
+                  (and (. @player -canPlayType)
                        (not= "" (. @player canPlayType "audio/ogg")))
                   (str "/stream/track/" id ".ogg")
 
@@ -56,7 +56,7 @@
   (reset! playing-state false)
   (events/removeAll @player)
   (try
-    (set! (. @player src) "")
+    (set! (. @player -src) "")
     (. @player (load))
     (catch js/Error e))
   (update-current))
@@ -64,8 +64,8 @@
 (defn- play-first []
   (when (current)
     (. @player (pause))
-    (set! (. @player autoplay) true)
-    (set! (. @player src) (track-uri (current)))
+    (set! (. @player -autoplay) true)
+    (set! (. @player -src) (track-uri (current)))
     (. @player (load))
     (events/listen @player "ended"
                    (fn []
@@ -81,7 +81,7 @@
   (play-first))
 
 (defn play-pause []
-  (if (. @player paused)
+  (if (. @player -paused)
     (. @player (play))
     (. @player (pause))))
 

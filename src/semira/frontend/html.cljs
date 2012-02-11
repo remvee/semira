@@ -18,7 +18,7 @@
 
 (defn- build-node [tag args]
   (let [[tag attrs text] (normalize (name tag) args)
-        e (dom/createDom tag (.strobj attrs))]
+        e (dom/createDom tag (.-strobj attrs))]
     (if text (dom/setTextContent e text))
     (if (:onclick attrs) (events/list e goog.events.EventType/CLICK (:onclick attrs)))
     e))

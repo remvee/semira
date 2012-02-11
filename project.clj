@@ -13,15 +13,7 @@
 
                  [org/jaudiotagger "2.0.3"]]
 
-  :dev-dependencies [[lein-git-deps "0.0.1-SNAPSHOT"]
-                     [lein-clojurescript "1.1.0"]]
-
-  :git-dependencies [["https://github.com/clojure/clojurescript.git"
-                      "329708bdd0f039241b187bc639836d9997d8fbd4"]]
-
-  ;; fool lein-clojurescript into using this particular version of cljs
-  :extra-classpath-dirs [".lein-git-deps/clojurescript/src/clj"
-                         ".lein-git-deps/clojurescript/src/cljs"]
+  :dev-dependencies [[lein-clojurescript "1.1.0"]]
 
   :cljs-output-to "public/js/semira.js"
   :cljs-output-dir "public/js/semira")
