@@ -5,7 +5,7 @@ Clojure script compilation:
 
 Installation (on ubuntu):
 
-  sudo apt-get install gstreamer-tools gstreamer0.10-plugins-good gstreamer0.10-plugins-bad gstreamer0.10-plugins-bad-multiverse gstreamer0.10-plugins-ugly gstreamer0.10-plugins-ugly-multiverse gstreamer0.10-ffmpeg lame
+  sudo apt-get install gstreamer-tools gstreamer0.10-plugins-good gstreamer0.10-plugins-bad gstreamer0.10-plugins-ugly gstreamer0.10-ffmpeg lame
   sudo wget -O /usr/local/bin/lein https://github.com/technomancy/leiningen/raw/stable/bin/lein
   sudo chmod +x /usr/local/bin/lein
 
@@ -18,7 +18,6 @@ Installation (on ubuntu):
   sudo su - semira
   git clone https://github.com/remvee/semira.git app
   cd app
-  mkdir -p ~/.m2/; cp deploy/m2-settings.xml ~/.m2/
   lein deps
   exit
 
