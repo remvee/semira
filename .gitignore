@@ -4,3 +4,5 @@ lib
 classes
 /tmp/
 /public/js/semira*
+/.lein-deps-sum
+/.lein-git-deps
