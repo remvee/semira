@@ -24,13 +24,13 @@
 (defn- convert [track type & {wait :wait}]
   (let [filename (cache-file track type)
         decoder (condp re-matches (:path track)
-                  #".*\.flac" "flacdec"
-                  #".*\.ogg"  "oggdemux ! vorbisdec"
-                  #".*\.mp3"  "ffdemux_mp3 ! ffdec_mp3"
-                  #".*\.m4a"  "ffdemux_mov_mp4_m4a_3gp_3g2_mj2 ! faad")
+                  #".*\.flac" "flacdec" ; gst good
+                  #".*\.ogg"  "oggdemux ! vorbisdec" ; gst base
+                  #".*\.mp3"  "mad" ; gst ugly
+                  #".*\.m4a"  "ffdemux_mov_mp4_m4a_3gp_3g2_mj2 ! faad") ; gst ffmpeg, bad
         encoder (condp = type
-                    "audio/mpeg" ["lame" "mode=1" (str "bitrate=" *bitrate*) "!" "id3mux"]
-                    "audio/ogg" ["vorbisenc" (str "bitrate=" (* *bitrate* 1000)) ")!" "oggmux"])
+                    "audio/mpeg" ["lame" "mode=1" (str "bitrate=" *bitrate*) "!" "id3mux"] ; gst ugly, bad
+                    "audio/ogg" ["vorbisenc" (str "bitrate=" (* *bitrate* 1000)) ")!" "oggmux"]) ; gst base
         command (flatten ["gst-launch" "-q"
                           "filesrc" "location=" (:path track) "!"
                           decoder "!"
@@ -48,7 +48,7 @@
                      (swap! conversions disj filename)
                      (when-not (= 0 (.exitValue process))
                        (printf "ERROR: %s: %s"
-                               (apply str command)
+                               (pr-str command)
                                (slurp (.getErrorStream process)))))]
       (if wait
         (guardian)
