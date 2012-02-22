@@ -71,7 +71,7 @@
   (compojure/GET "/albums" [offset limit keys query]
                  (let [offset (if offset (Integer/valueOf offset) 0)
                        limit (if limit (Integer/valueOf limit) utils/*page-size*)
-                       keys (if keys (map keyword keys) [:genre :artist :album :year :id])
+                       keys (if keys (map keyword keys) [:genre :composer :artist :album :year :id])
                        sorter (if (empty? query)
                                 #(reverse (sort-by :mtime %))
                                 #(utils/sort-by-keys % keys))

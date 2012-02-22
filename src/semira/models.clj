@@ -55,9 +55,10 @@
 
 (defn- doc-album [album]
   (assoc album :doc (reduce (fn [m [p r]] (s/replace m p r))
-                            (.toLowerCase (str (:artist album) " "
+                            (.toLowerCase (str (:genre album) " "
+                                               (:composer album) " "
+                                               (:artist album) " "
                                                (:album album) " "
-                                               (:genre album) " "
                                                (:year album)))
                             [[#"\s+" " "]
                              [#"^\s|\s$" ""]])))

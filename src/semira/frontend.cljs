@@ -126,7 +126,7 @@
                                                   (map (fn [x] {:id (:id x) :album-id (:id album)})
                                                        (:tracks album))))}
      [:span.title
-      (utils/interposed-html track " / " [:artist :album :title])]
+      (utils/interposed-html track " / " [:composer :artist :album :title])]
      " "
      [:span.status {:id (str "track-status-" id)}]
      [:span.length
@@ -140,7 +140,7 @@
 (defn album-row [album]
   [:li.album
    [:div.album-info  {:onclick #(album-toggle (:id album))}
-    (utils/interposed-html album " " [:year :genre :artist :album])]
+    (utils/interposed-html album " " [:year :genre :artist :composer :album])]
    " "
    [:div.album  {:id (str "album-" (:id album))}]])
 
