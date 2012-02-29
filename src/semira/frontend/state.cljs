@@ -1,7 +1,7 @@
 (ns semira.frontend.state
   (:require
    [semira.frontend.utils :as utils]
-   [goog.uri.utils :as uri-utils]))
+   [goog.uri.utils :as guri-utils]))
 
 (def albums (atom nil))
 
@@ -11,9 +11,9 @@
 (defn more-albums [query page-size callback]
   (let [offset (count @albums)
         uri (-> "/albums"
-                (uri-utils/appendParam "offset" offset)
-                (uri-utils/appendParam "limit" (inc page-size))
-                (uri-utils/appendParam "query" query))]
+                (guri-utils/appendParam "offset" offset)
+                (guri-utils/appendParam "limit" (inc page-size))
+                (guri-utils/appendParam "query" query))]
     (utils/remote-get uri
                       #(do (when (= offset (count @albums))
                              (swap! albums concat (take page-size %))

@@ -2,11 +2,14 @@
   (:require
    [semira.frontend.html :as html]
    [cljs.reader :as reader]
-   [goog.dom :as dom]
-   [goog.dom.classes :as dom-classes]
-   [goog.events :as events]
+   [goog.dom :as gdom]
+   [goog.dom.classes :as gclasses]
+   [goog.events :as gevents]
    [goog.string :as gstring]
-   [goog.net.XhrIo :as xhr]))
+   [goog.net.XhrIo :as gxhr]))
+
+(def gevent-type goog.events.EventType)
+(def gnet-event-type goog.net.EventType)
 
 (defn debug [& args]
   (js/console.log (pr-str args)))
@@ -59,13 +62,13 @@
     out))
 
 (defn remote-get [url callback]
-  (let [xhr (goog.net.XhrIo.)]
-    (events/listen xhr goog.net.EventType/COMPLETE (fn [] (callback (reader/read-string (. xhr (getResponseText))))))
-    (. xhr (send url "GET" "" (map->js {"Content-Type" "application/clojure; charset=utf-8"})))))
+  (let [gxhr (goog.net.XhrIo.)]
+    (gevents/listen gxhr (. gnet-event-type -COMPLETE) (fn [] (callback (reader/read-string (. gxhr (getResponseText))))))
+    (. gxhr (send url "GET" "" (map->js {"Content-Type" "application/clojure; charset=utf-8"})))))
 
-(def by-id dom/getElement)
+(def by-id gdom/getElement)
 
-(def by-tag-class dom/getElementsByTagNameAndClass)
+(def by-tag-class gdom/getElementsByTagNameAndClass)
 
 (defn first-by-tag-class [tag class elm]
   (aget (by-tag-class tag class elm) 0))
@@ -75,11 +78,7 @@
 
 (defn busy [elm state]
   (when elm
-    (dom-classes/enable elm "busy" state)))
-
-(defn with-on-click [e f]
-  (events/listen e goog.events.EventType/CLICK f)
-  e)
+    (gclasses/enable elm "busy" state)))
 
 (defn scroll-into-view [elm]
   (when elm

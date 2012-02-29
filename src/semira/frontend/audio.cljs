@@ -1,9 +1,8 @@
 (ns semira.frontend.audio
-  (:require
-   [semira.frontend.utils :as utils]
-   [goog.events :as events]
-   [goog.uri.utils :as uri-utils]
-   [goog.userAgent :as user-agent]))
+  (:require [semira.frontend.utils :as utils]
+            [goog.events :as gevents]
+            [goog.uri.utils :as guri-utils]
+            [goog.userAgent :as guser-agent]))
 
 (def queue (atom ()))
 (def player (atom (utils/by-id "player")))
@@ -32,7 +31,7 @@
   (doseq [fn @update-current-fns] (fn)))
 
 (let [timer (goog.Timer. 1000)]
-  (events/listen timer goog.Timer/TICK update-current)
+  (gevents/listen timer goog.Timer/TICK update-current)
   (. timer (start)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -48,13 +47,13 @@
 
                   :else
                   (str "/stream/track/" id ".mp3"))]
-    (if user-agent/WEBKIT
-      (uri-utils/appendParam uri "wait" true)
+    (if guser-agent/WEBKIT
+      (guri-utils/appendParam uri "wait" true)
       uri)))
 
 (defn stop []
   (reset! playing-state false)
-  (events/removeAll @player)
+  (gevents/removeAll @player)
   (try
     (set! (. @player -src) "")
     (. @player (load))
@@ -67,11 +66,11 @@
     (set! (. @player -autoplay) true)
     (set! (. @player -src) (track-uri (current)))
     (. @player (load))
-    (events/listen @player "ended"
-                   (fn []
-                     (stop)
-                     (swap! queue next)
-                     (play-first)))
+    (gevents/listen @player "ended"
+                    (fn []
+                      (stop)
+                      (swap! queue next)
+                      (play-first)))
     (reset! playing-state true)
     (update-current)))
 

@@ -1,14 +1,15 @@
 (ns semira.frontend
-  (:require
-   [semira.frontend.audio :as audio]
-   [semira.frontend.html :as html]
-   [semira.frontend.state :as state]
-   [semira.frontend.utils :as utils]
-   [goog.events :as events]
-   [goog.dom :as dom]
-   [goog.dom.classes :as dom-classes]
-   [goog.History :as hist]
-   [clojure.browser.repl :as repl]))
+  (:require [semira.frontend.audio :as audio]
+            [semira.frontend.html :as html]
+            [semira.frontend.state :as state]
+            [semira.frontend.utils :as utils]
+            [goog.events :as gevents]
+            [goog.dom :as gdom]
+            [goog.dom.classes :as gclasses]
+            [goog.History :as ghist]
+            [clojure.browser.repl :as repl]))
+
+(def gevent-type goog.events.EventType)
 
 (def page-size 15)
 
@@ -28,12 +29,12 @@
   (utils/by-id (str "album-" id)))
 
 (defn album-busy [id state]
-  (let [album (dom/getAncestorByTagNameAndClass (album-container id) "li" "album")]
+  (let [album (gdom/getAncestorByTagNameAndClass (album-container id) "li" "album")]
     (utils/busy album state)))
 
 (defn album-collapse [id]
   (album-busy id false)
-  (dom/removeChildren (album-container id)))
+  (gdom/removeChildren (album-container id)))
 
 (defn albums-update [albums & {offset :offset end-reached :end-reached}]
   (doseq [id ["albums-more" "search-query"]]
@@ -41,31 +42,31 @@
 
   (let [container (utils/by-id "albums")]
     (cond (empty? albums)
-          (do (dom/removeChildren container)
-              (dom/append container (html/build (album-not-found))))
+          (do (gdom/removeChildren container)
+              (gdom/append container (html/build (album-not-found))))
 
           (or (nil? offset) (= offset 0))
           (do
-            (dom/removeChildren container)
+            (gdom/removeChildren container)
             (doseq [row (map album-row albums)]
-              (dom/append container (html/build row))))
+              (gdom/append container (html/build row))))
 
           :else
           (do
             (when (utils/by-id "albums-more")
-              (dom/removeNode (utils/by-id "albums-more")))
+              (gdom/removeNode (utils/by-id "albums-more")))
             (doseq [row (map album-row (drop offset albums))]
-              (dom/append container (html/build row)))
+              (gdom/append container (html/build row)))
             (utils/scroll-into-view (utils/by-id (str "album-"
                                                       (:id (first (drop (dec offset) albums))))))))
     (when-not end-reached
-      (dom/append container (html/build (album-more-row))))))
+      (gdom/append container (html/build (album-more-row))))))
 
 (defn album-update [album]
   (album-busy (:id album) false)
   (let [container (album-container (:id album))]
-    (dom/removeChildren container)
-    (dom/append container (html/build (album-listing album)))))
+    (gdom/removeChildren container)
+    (gdom/append container (html/build (album-listing album)))))
 
 (defn albums-more []
   (utils/busy (utils/by-id "albums-more") true)
@@ -86,10 +87,10 @@
   (state/clear-albums)
   (albums-more))
 
-(events/listen (utils/by-id "search")
-               goog.events.EventType/SUBMIT
-               #(do (. % (preventDefault))
-                    (album-search)))
+(gevents/listen (utils/by-id "search")
+                (. gevent-type -SUBMIT)
+                #(do (. % (preventDefault))
+                     (album-search)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -102,10 +103,10 @@
 
 (defn update-current-state []
   (when-let [track (utils/by-id (str "track-" (:id (audio/current))))]
-    (dom-classes/enable track "playing" (audio/playing?))
+    (gclasses/enable track "playing" (audio/playing?))
     (utils/busy track (and (audio/loading?))))
   (when-let [album (utils/by-id (str "album-" (:album-id (audio/current))))]
-    (dom-classes/enable (. album -parentNode) "playing" (audio/playing?))))
+    (gclasses/enable (. album -parentNode) "playing" (audio/playing?))))
 
 (defn update-current-time []
   (if-let [track-current-time (utils/by-id (str "track-current-time-" (:id (audio/current))))]

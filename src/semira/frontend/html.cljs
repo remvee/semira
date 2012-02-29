@@ -1,7 +1,9 @@
 (ns semira.frontend.html
   (:require [clojure.string :as string]
-            [goog.dom :as dom]
-            [goog.events :as events]))
+            [goog.dom :as gdom]
+            [goog.events :as gevents]))
+
+(def gevent-type goog.events.EventType)
 
 (defn- stringify-keys [m]
   (reduce (fn [m [k v]] (assoc m (name k) v)) {} m))
@@ -18,9 +20,9 @@
 
 (defn- build-node [tag args]
   (let [[tag attrs text] (normalize (name tag) args)
-        e (dom/createDom tag (.-strobj attrs))]
-    (if text (dom/setTextContent e text))
-    (if (:onclick attrs) (events/list e goog.events.EventType/CLICK (:onclick attrs)))
+        e (gdom/createDom tag (.-strobj attrs))]
+    (if text (gdom/setTextContent e text))
+    (if (:onclick attrs) (gevents/list e (. gevent-type -CLICK) (:onclick attrs)))
     e))
 
 (defn build [v]
@@ -29,14 +31,14 @@
                                              (take-while #(or (map? %) (string? %)) (rest v)))
                                  (drop-while #(or (map? %) (string? %)) (rest v))]
               children (map build children)]
-          (doseq [child (flatten children)] (dom/appendChild parent child))
+          (doseq [child (flatten children)] (gdom/appendChild parent child))
           parent)
 
         (seq? v)
         (map build v)
 
         (string? v)
-        (dom/createTextNode v)
+        (gdom/createTextNode v)
         
         :else
         (throw (str "unexpected input for html/build: " (pr-str v)))))
