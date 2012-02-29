@@ -9,7 +9,7 @@
 (def ^:dynamic *bitrate* 80)
 
 ;; ensure cache directory exists
-(utils/mkdir-p cache-dir)
+(utils/mkdirs cache-dir)
 
 (defn- cache-file [track type]
   (str cache-dir
