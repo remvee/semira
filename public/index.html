@@ -1,0 +1,31 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <title>SEMIRA</title>
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1" name="viewport">
+    <link href="/screen.css" rel="stylesheet" type="text/css">
+  </head>
+  <body>
+    <div id="container">
+      <div>
+        <div class="header">
+          <form class="search" id="search" method="get">
+            <span class="input">
+              <input id="search-query" name="query" type="text" value="">
+            </span>
+            <span class="button">
+              <button type="submit">Go!</button>
+            </span>
+          </form>
+        </div>
+        <ul class="albums" id="albums">
+          <li id="albums-more">..</li>
+        </ul>
+
+        <audio controls="controls" id="player" style="display:none;margin-left:-1000px"></audio>
+      </div>
+    </div>
+
+    <script src="/semira.js" type="text/javascript"></script>
+  </body>
+</html>

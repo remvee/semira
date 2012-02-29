@@ -3,6 +3,8 @@ pom.xml
 lib
 classes
 /tmp/
-/public/js/semira*
+/public/semira*
 /.lein-deps-sum
 /.lein-git-deps
+/.lein-plugins/checksum
+.repl

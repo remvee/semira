@@ -8,20 +8,7 @@
 
 (def rss-description "Latest additions")
 
-(defn overview-header [query]
-  [:div.header
-   [:form#search.search {:method "get"}
-    [:span.input
-     [:input#search-query {:type "text", :name "query", :value query}]]
-    [:span.button
-     [:button {:type "submit"} "Go!"]]]])
-
-(defn overview []
-  [:div
-   (overview-header "")
-   [:ul#albums.albums
-    [:li#albums-more ".."]]
-   [:audio#player {:controls true :style "display:none;margin-left:-1000px"} ""]])
+(def ^:dynamic *page-size* 20)
 
 (defn tracks [album]
   (hiccup/html
@@ -61,8 +48,6 @@
                albums)]])))
 
 (compojure/defroutes handler
-  (compojure/GET "/" [page query]
-                 (web/layout (overview)))
   (compojure/GET "/album/:id" [id]
                  (let [album (dissoc (models/album-by-id id) :doc)]
                    {:status 200
@@ -70,7 +55,7 @@
                     :body (pr-str album)}))
   (compojure/GET "/albums" [offset limit keys query]
                  (let [offset (if offset (Integer/valueOf offset) 0)
-                       limit (if limit (Integer/valueOf limit) utils/*page-size*)
+                       limit (if limit (Integer/valueOf limit) *page-size*)
                        keys (if keys (map keyword keys) [:genre :composer :artist :album :year :id])
                        sorter (if (empty? query)
                                 #(reverse (sort-by :mtime %))
@@ -83,7 +68,7 @@
                     :headers {"Content-Type" "application/clojure; charset=utf-8"}
                     :body (pr-str albums)}))
   (compojure/GET "/albums.rss" []
-                 (let [albums (take utils/*page-size*
+                 (let [albums (take *page-size*
                                     (reverse (sort-by :mtime (models/albums))))]
                    {:status 200
                     :headers {"Content-Type" "text/xml"}
