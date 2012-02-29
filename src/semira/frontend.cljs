@@ -7,7 +7,8 @@
    [goog.events :as events]
    [goog.dom :as dom]
    [goog.dom.classes :as dom-classes]
-   [goog.History :as hist]))
+   [goog.History :as hist]
+   [clojure.browser.repl :as repl]))
 
 (def page-size 15)
 
@@ -150,3 +151,7 @@
 (defn album-more-row []
   [:li#albums-more.more {:onclick albums-more}
    [:img {:src "/images/more.png" :alt "&rarr;"}]])
+
+;; a repl for debugging..
+(when (re-find #"\?debug" (. window/location -href))
+  (repl/connect "http://localhost:9000/repl"))
