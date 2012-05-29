@@ -5,7 +5,7 @@ Clojure script compilation:
 
 Installation (on ubuntu):
 
-  sudo apt-get install gstreamer-tools gstreamer0.10-plugins-good gstreamer0.10-plugins-bad gstreamer0.10-plugins-ugly gstreamer0.10-ffmpeg lame
+  sudo apt-get install gstreamer-tools gstreamer0.10-plugins-good gstreamer0.10-plugins-bad gstreamer0.10-plugins-ugly gstreamer0.10-ffmpeg gstreamer0.10-fluendo-mp3 lame
   sudo wget -O /usr/local/bin/lein https://github.com/technomancy/leiningen/raw/stable/bin/lein
   sudo chmod +x /usr/local/bin/lein
 

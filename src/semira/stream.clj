@@ -26,7 +26,7 @@
         decoder (condp re-matches (:path track)
                   #".*\.flac" "flacdec" ; gst good
                   #".*\.ogg"  "oggdemux ! vorbisdec" ; gst base
-                  #".*\.mp3"  "mad" ; gst ugly
+                  #".*\.mp3"  "flump3dec" ; gst fluendo-mp3
                   #".*\.m4a"  "ffdemux_mov_mp4_m4a_3gp_3g2_mj2 ! faad") ; gst ffmpeg, bad
         encoder (condp = type
                     "audio/mpeg" ["lame" "mode=1" (str "bitrate=" *bitrate*) "!" "id3mux"] ; gst ugly, bad
