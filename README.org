@@ -1,0 +1,117 @@
+#+LaTeX_HEADER: \usepackage{parskip}
+
+Semira sings songs!
+
+#+LaTeX: \pagebreak
+
+* What is this?
+
+A simple application to stream audio from your server to your browser
+for listening.  It provides a HTML5 frontend to audio files (mp3,
+flac, ogg, m4a) for searching and playing.  The files are recoded
+before streaming them to save bandwidth and be compatible with the
+browser you are using.
+
+* How does it work?
+
+This application is build using Clojure and ClojureScript to handle
+user requests and uses GStreamer to recode audio files.  The recoded
+audio files are cached for later use.
+
+* Installation
+
+  Here follow installation instruction for an Ubuntu server.  These
+  steps have been tested on Ubuntu Server 12.04.1.
+
+** Setup requirements
+
+  These instructions assume a clean Ubuntu Server installation.  This
+  section will pull in things like git, apache, the JVM, gstreamer and
+  leiningen.
+
+  #+BEGIN_SRC sh
+  sudo -s
+  apt-get install git openjdk-6-jre-headless apache2
+  apt-get install gstreamer-tools gstreamer0.10-plugins-good \
+    gstreamer0.10-plugins-bad gstreamer0.10-plugins-ugly \
+    gstreamer0.10-fluendo-mp3 lame
+  wget -O /usr/local/bin/lein \
+    https://github.com/technomancy/leiningen/raw/stable/bin/lein
+  chmod +x /usr/local/bin/lein
+  #+END_SRC
+
+** Create an account for the application
+
+  Now we'll create an account for the application to run.  All assets
+  will be owned by this account.
+
+  #+BEGIN_SRC sh
+  adduser semira
+  echo '[]' > /var/lib/semira.sexp
+  mkdir -p /var/lib/semira /var/cache/semira
+  touch /var/log/semira.log
+  chown semira:semira /var/lib/semira /var/cache/semira \
+    /var/lib/semira.sexp /var/log/semira.log
+  #+END_SRC
+
+** Pull in the application files
+
+  Get the source from github, fetch the dependencies and build the js
+  files from cljs sources.
+
+  #+BEGIN_SRC sh
+  su - semira
+  git clone https://github.com/remvee/semira.git app
+  cd app
+  lein deps
+  lein cljsbuild once
+  exit
+  #+END_SRC
+
+** Configure Apache and Upstart
+
+  Make sure HTTP request are redirected to the application and it
+  still works after reboot.
+
+  #+BEGIN_SRC sh
+  cp ~semira/app/deploy/upstart-semira.conf \
+    /etc/init/semira.conf
+  cp ~semira/app/deploy/apache-semira.conf \
+    /etc/apache2/sites-available/semira
+
+  a2enmod proxy
+  a2enmod proxy_http
+  a2ensite semira
+  a2dissite default
+  #+END_SRC
+
+** Start it up!
+
+  Let's give it a whirl!
+
+  #+BEGIN_SRC sh
+  tail -f /var/log/semira.log &
+  start semira
+  service apache2 restart
+  #+END_SRC
+
+** Add some music
+
+  Copy some media files to the server and ask the application to index
+  them.
+
+  #+BEGIN_SRC sh
+  # copy some mp3s or flac files to /var/lib/semira
+  curl http://localhost:8080/update
+  #+END_SRC
+
+  You should now be able to point your browser to the server and start
+  playing your tunes.
+
+** What's next?
+
+  Still missing from the above instructions are:
+
+  - setup logrotate to tame semira.log
+  - add a cron job to wipe outdated audio files from cache
+
