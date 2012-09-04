@@ -8,7 +8,7 @@
                  [ring/ring-devel "0.3.11"]
                  [ring-partial-content "0.0.1"]
                  [org/jaudiotagger "2.0.3"]]
-  :plugins [[lein-cljsbuild "0.1.2"]]
+  :plugins [[lein-cljsbuild "0.2.1"]]
   :cljsbuild {:builds [{:source-path "src"
                         :compiler {:output-to "public/semira.js"
                                    :output-dir "public/semira"}}]})
