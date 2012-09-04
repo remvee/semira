@@ -1,32 +1,36 @@
-Clojure script compilation:
+Installation (on Ubuntu):
 
-  dev: rm -rf public/js/semira*; cljsc src '{:output-dir "public/js/semira"}' > public/js/semira.js
-  prod: rm -rf public/js/semira*; cljsc src '{:output-dir "public/js/semira" :optimizations :advanced}' > public/js/semira.js
+  sudo -s
+  apt-get install git openjdk-6-jre-headless apache2
+  apt-get install gstreamer-tools gstreamer0.10-plugins-good gstreamer0.10-plugins-bad gstreamer0.10-plugins-ugly gstreamer0.10-fluendo-mp3 lame
+  wget -O /usr/local/bin/lein https://github.com/technomancy/leiningen/raw/stable/bin/lein
+  chmod +x /usr/local/bin/lein
 
-Installation (on ubuntu):
+  adduser semira
+  echo '[]' > /var/lib/semira.sexp
+  mkdir -p /var/lib/semira /var/cache/semira
+  touch /var/log/semira.log
+  chown semira:semira /var/lib/semira /var/cache/semira /var/lib/semira.sexp /var/log/semira.log
 
-  sudo apt-get install gstreamer-tools gstreamer0.10-plugins-good gstreamer0.10-plugins-bad gstreamer0.10-plugins-ugly gstreamer0.10-ffmpeg gstreamer0.10-fluendo-mp3 lame
-  sudo wget -O /usr/local/bin/lein https://github.com/technomancy/leiningen/raw/stable/bin/lein
-  sudo chmod +x /usr/local/bin/lein
-
-  sudo adduser semira
-  echo '[]' | sudo tee /var/lib/semira.sexp
-  sudo ln -s /media/music /var/lib/semira
-  sudo touch /var/log/semira.log
-  sudo chown semira:semira /var/lib/semira.sexp /var/log/semira.log
-
-  sudo su - semira
+  su - semira
   git clone https://github.com/remvee/semira.git app
   cd app
   lein deps
+  lein cljsbuild once
   exit
 
-  sudo cp ~semira/app/deploy/upstart-semira.sh /etc/init/semira.conf
-  sudo vi /etc/apache2/sites-available/semira # adjust PORT
-  sudo cp deploy/apache-semira.conf /etc/apache2/sites-available/semira
-  sudo vi /etc/apache2/sites-available/semira # adjust ServerName and ProxyPass portnumbers
+  cp ~semira/app/deploy/upstart-semira.conf /etc/init/semira.conf
+  cp ~semira/app/deploy/apache-semira.conf /etc/apache2/sites-available/semira
+  vi /etc/apache2/sites-available/semira # adjust ServerName
 
   tail -f /var/log/semira.log &
-  sudo start semira
-  sudo a2ensite semira
-  sudo /etc/init.d/apache2 restart
+  start semira
+
+  a2enmod proxy
+  a2enmod proxy_http
+  a2ensite semira
+  a2dissite default
+  service apache2 restart
+
+  # copy some mp3s to /var/lib/semira
+  curl http://localhost:8080/update
