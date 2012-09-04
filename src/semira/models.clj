@@ -6,7 +6,7 @@
   (:import [java.io File FileInputStream FileOutputStream PushbackReader]))
 
 (def albums-file (get (System/getenv) "SEMIRA_ALBUMS_SEXP" "/var/lib/semira.sexp"))
-(def  music-dir (get (System/getenv) "SEMIRA_MUSIC_DIR" "/var/lib/semira"))
+(def music-dir (get (System/getenv) "SEMIRA_MUSIC_DIR" "/var/lib/semira"))
 
 (def ^:dynamic *albums*
   (atom
