@@ -12,13 +12,16 @@
             [semira.frontend.state :as state]
             [semira.frontend.utils :as utils]
             [goog.events :as gevents]
+            [goog.events.KeyCodes :as gevents-keycodes]
             [goog.dom :as gdom]
             [goog.dom.classes :as gclasses]
             [goog.History :as ghist]
             [clojure.browser.repl :as repl]))
 
 (def gevent-type goog.events.EventType)
+(def gevent-keycodes goog.events.KeyCodes)
 
+(def window (js* "window"))
 (def page-size 15)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -99,6 +102,15 @@
                 (. gevent-type -SUBMIT)
                 #(do (. % (preventDefault))
                      (album-search)))
+
+(gevents/listen window
+                (. gevent-type -KEYDOWN)
+                (fn [event]
+                  (when (and (not (= "INPUT" (.. event -target -tagName)))
+                             (#{(. gevent-keycodes -PAUSE)
+                                (. gevent-keycodes -SPACE)} (. event -keyCode)))
+                    (.preventDefault event)
+                    (audio/play-pause))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
