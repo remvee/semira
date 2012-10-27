@@ -68,8 +68,8 @@
               (gdom/removeNode (utils/by-id "albums-more")))
             (doseq [row (map album-row (drop offset albums))]
               (gdom/append container (html/build row)))
-            (utils/scroll-into-view (utils/by-id (str "album-"
-                                                      (:id (first (drop (dec offset) albums))))))))
+            (.focus (utils/by-id (str "album-"
+                                 (:id (first (drop (dec offset) albums))))))))
     (when-not end-reached
       (gdom/append container (html/build (album-more-row))))))
 
@@ -143,12 +143,18 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defn onclick [event f & args]
+  (.preventDefault event)
+  (apply f args))
+
 (defn track-row [track album]
   (let [id (:id track)]
-    [:li.track {:id (str "track-" id)
-                :onclick #(track-play (drop-while (fn [x] (not= id (:id x)))
-                                                  (map (fn [x] {:id (:id x) :album-id (:id album)})
-                                                       (:tracks album))))}
+    [:a.track {:id (str "track-" id)
+               :href "#"
+               :onclick #(onclick %
+                                  track-play (drop-while (fn [x] (not= id (:id x)))
+                                                         (map (fn [x] {:id (:id x) :album-id (:id album)})
+                                                              (:tracks album))))}
      [:span.title
       (utils/interposed-html track " / " [:composer :artist :album :title])]
      " "
@@ -163,7 +169,7 @@
 
 (defn album-row [album]
   [:li.album
-   [:div.album-info  {:onclick #(album-toggle (:id album))}
+   [:a.album-info {:href "#" :onclick #(onclick % album-toggle (:id album))}
     (utils/interposed-html album " " [:year :genre :artist :composer :album])]
    " "
    [:div.album  {:id (str "album-" (:id album))}]])
@@ -172,7 +178,7 @@
   [:li.not-found "not found.."])
 
 (defn album-more-row []
-  [:li#albums-more.more {:onclick albums-more}
+  [:a#albums-more.more {:href "#" :onclick #(onclick % albums-more)}
    [:img {:src "/images/more.png" :alt "&rarr;"}]])
 
 ;; a repl for debugging..

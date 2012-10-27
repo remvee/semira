@@ -9,8 +9,11 @@ body {
 }
 a, a:link, a:visited {
     text-decoration: none;
-    color: blue;
+    color: #000;
     cursor: pointer;
+}
+a:focus, a:hover {
+    background: #f8f8f8;
 }
 input, button {
     border-radius: 3px;
@@ -62,25 +65,24 @@ ul.albums {
     border-radius: 3px;
     -moz-border-radius: 3px;
 }
-ul.albums li {
+ul.albums li, ul.albums a.track {
+    display: list-item;
     border-bottom: 1px solid #ccc;
     position: relative;
     cursor: pointer;
 }
-ul.albums li div.album-info {
+ul.albums li .album-info {
+    display: block;
     min-height: 34px;
     padding: 3px 8px;
 }
 ul.albums li.album span {
     display: block;
 }
-ul.albums li.track:hover {
-    background: #f8f8f8;
-}
-ul.albums li.track span {
+ul.albums a.track span {
     display: inline;
 }
-ul.albums li span.genre, ul.albums li span.year {
+ul.albums span.genre, ul.albums span.year {
     font-size: smaller;
     float: right;
     clear: both;
@@ -103,20 +105,21 @@ ol.tracks {
     margin: 0;
     padding: 0;
 }
-ol.tracks li {
+ol.tracks a.track {
     padding: 6px 8px;
     position: relative;
     border-bottom: 1px solid #f8f8f8;
 }
-ol.tracks li:last-child {
+ol.tracks a.track:last-child {
     border-bottom: none;
 }
-ol.tracks li .length {
+ol.tracks a.track .length {
     float: right;
     font-size: smaller;
 }
 
-li#albums-more {
+#albums-more {
+    display: list-item;
     text-align: center;
     padding: 8px 0 3px 0;
 }
