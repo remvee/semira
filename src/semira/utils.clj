@@ -8,7 +8,7 @@
 
 (ns semira.utils
   (:require [clojure.string :as string])
-  (:use [hiccup.core :only [escape-html]])
+  (:use [hiccup.util :only [escape-html]])
   (:import [java.io File StringBufferInputStream]
            [java.util.regex Pattern]
            [java.security MessageDigest DigestInputStream]))
