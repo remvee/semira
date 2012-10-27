@@ -181,6 +181,9 @@ body.rss .pubDate {
 }
 
 @media (max-width: 600px) {
+    body {
+        font-family: Roboto, Arial, Helvetica, sans-serif;;
+    }
     div#container {
         margin: 0;
         padding: 0;
