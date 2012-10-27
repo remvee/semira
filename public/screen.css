@@ -71,6 +71,9 @@ ul.albums li div.album-info {
 ul.albums li.album span {
     display: block;
 }
+ul.albums li.track:hover {
+    background: #f8f8f8;
+}
 ul.albums li.track span {
     display: inline;
 }
