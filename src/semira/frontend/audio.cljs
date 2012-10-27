@@ -24,12 +24,14 @@
 (defn current-time []
   (. @player -currentTime))
 
-(defn playing? []
-  @playing-state)
-
 (defn loading? []
-  (and @playing-state
-       (< (. @player -readyState) 4)))
+  (and @playing-state (< (. @player -readyState) 4)))
+
+(defn playing? []
+  (and @playing-state (not (. @player -paused)) (not (loading?))))
+
+(defn paused? []
+  (and @playing-state (. @player -paused) (not (loading?))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

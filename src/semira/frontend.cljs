@@ -112,15 +112,17 @@
 (defn update-current-state []
   (when-let [track (utils/by-id (str "track-" (:id (audio/current))))]
     (gclasses/enable track "playing" (audio/playing?))
+    (gclasses/enable track "paused" (audio/paused?))
     (utils/busy track (and (audio/loading?))))
   (when-let [album (utils/by-id (str "album-" (:album-id (audio/current))))]
-    (gclasses/enable (. album -parentNode) "playing" (audio/playing?))))
+    (gclasses/enable (. album -parentNode) "playing" (audio/playing?))
+    (gclasses/enable (. album -parentNode) "paused" (audio/paused?))))
 
 (defn update-current-time []
   (if-let [track-current-time (utils/by-id (str "track-current-time-" (:id (audio/current))))]
     (utils/inner-html
      track-current-time
-     (if (audio/playing?)
+     (if (or (audio/playing?) (audio/paused?))
        (str (utils/seconds->time (js/Math.round (audio/current-time))) " / ")
        ""))))
 

@@ -31,8 +31,11 @@ html .busy {
     background-color: #ddd;
     background-image: url("../images/blink.gif");
 }
-.playing .playing, .playing .album-info {
+.playing .playing, .playing .album-info, .paused .paused, .paused .album-info {
     background-color: #eee;
+}
+.paused .paused, .paused .album-info {
+    color: #666;
 }
 .busy .playing {
     transition: all .5s;
