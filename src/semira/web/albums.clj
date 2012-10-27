@@ -48,7 +48,7 @@
                                                                (filter identity
                                                                        (flatten (map #(get album %)
                                                                                      [:artist :album]))))))]
-                       [:link "#"]
+                       [:link (str "/#" (:id album))]
                        [:guid (:id album)]
                        [:description (str "<![CDATA[" (tracks album) "]]>")]
                        [:author]
@@ -81,7 +81,6 @@
                    {:status 200
                     :headers {"Content-Type" "text/xml"}
                     :body (rss albums)}))
-  
   (compojure/GET "/update" []
                  (future
                    (models/scan)

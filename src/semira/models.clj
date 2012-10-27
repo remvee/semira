@@ -42,8 +42,9 @@
         f (if (or (nil? query) (= "" query))
             (fn [_] true)
             (fn [album]
-              (if-let [v (:doc album)]
-                (not= -1 (.indexOf v query)))))]
+              (or (= (:id album) query)
+                  (if-let [v (:doc album)]
+                    (not= -1 (.indexOf v query))))))]
     (filter f (deref *albums*))))
 
 (defn album-by-id [id]
