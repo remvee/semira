@@ -13,8 +13,10 @@
             [clojure.string :as s])
   (:import [java.io File FileInputStream FileOutputStream PushbackReader]))
 
-(def albums-file (get (System/getenv) "SEMIRA_ALBUMS_SEXP" "/var/lib/semira.sexp"))
-(def music-dir (get (System/getenv) "SEMIRA_MUSIC_DIR" "/var/lib/semira"))
+(def albums-file (get (System/getenv) "SEMIRA_ALBUMS_SEXP"
+                      "/tmp/semira.sexp"))
+(def music-dir (get (System/getenv) "SEMIRA_MUSIC_DIR"
+                    (str (get (System/getenv) "HOME") "/Music")))
 
 (def ^:dynamic *albums*
   (atom
@@ -25,8 +27,7 @@
        (binding [*in* r]
          (read)))
      (catch Exception e
-       (do (prn e)
-           [])))))
+       []))))
 
 (def backup-agent (agent albums-file))
 
