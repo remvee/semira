@@ -13,7 +13,7 @@ a, a:link, a:visited {
     cursor: pointer;
 }
 a:focus, a:hover {
-    background: #f8f8f8;
+    background: #eee;
 }
 input, button {
     border-radius: 3px;
@@ -23,7 +23,7 @@ input, button {
     padding: 4px;
 }
 button {
-    background: #ccc;
+    background: #bbb;
     padding: 2px 4px;
 }
 img {
@@ -31,11 +31,11 @@ img {
 }
 
 html .busy {
-    background-color: #ddd;
+    background-color: #ccc;
     background-image: url("../images/blink.gif");
 }
 .playing .playing, .playing .album-info, .paused .paused, .paused .album-info {
-    background-color: #eee;
+    background-color: #ddd;
 }
 .paused .paused, .paused .album-info {
     color: #666;
@@ -67,7 +67,7 @@ ul.albums {
 }
 ul.albums li, ul.albums a.track {
     display: list-item;
-    border-bottom: 1px solid #ccc;
+    border-bottom: 1px solid #bbb;
     position: relative;
     cursor: pointer;
 }
