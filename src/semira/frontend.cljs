@@ -26,7 +26,7 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(declare album-listing album-row album-more-row album-not-found)
+(declare album-listing album-row album-more-row album-not-found album-toggle)
 
 (defn albums-query []
   (. (utils/by-id "search-query") -value))
@@ -71,7 +71,10 @@
             (.focus (utils/by-id (str "album-"
                                  (:id (first (drop (dec offset) albums))))))))
     (when-not end-reached
-      (gdom/append container (html/build (album-more-row))))))
+      (gdom/append container (html/build (album-more-row))))
+
+    (when (= 1 (count albums))
+      (album-toggle (:id (first albums))))))
 
 (defn album-update [album]
   (album-busy (:id album) false)
