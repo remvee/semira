@@ -1,4 +1,5 @@
 (defproject semira "1.0.0-SNAPSHOT"
+  :main semira.core
   :description "Semira sings songs."
   :dependencies [[org.clojure/clojure "1.4.0"]
                  [compojure "1.1.3"]

@@ -31,7 +31,7 @@ audio files are cached for later use.
 
   #+BEGIN_SRC sh
   sudo -s
-  apt-get install git openjdk-6-jre-headless apache2
+  apt-get install git apache2 leiningen openjdk-6-jre-headless
   apt-get install gstreamer-tools gstreamer0.10-plugins-good \
     gstreamer0.10-plugins-bad gstreamer0.10-plugins-ugly \
     gstreamer0.10-fluendo-mp3 lame
