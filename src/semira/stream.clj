@@ -13,7 +13,8 @@
             [semira.utils :as utils])
   (:import [java.io File FileInputStream PipedInputStream PipedOutputStream IOException]))
 
-(def cache-dir (clojure.core/get (System/getenv) "SEMIRA_MUSIC_DIR" "/var/cache/semira"))
+(def cache-dir (clojure.core/get (System/getenv) "SEMIRA_CACHE_DIR"
+                                 "/tmp/semira"))
 (def ^:dynamic *bitrate* 80)
 
 ;; ensure cache directory exists
