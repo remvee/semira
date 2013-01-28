@@ -76,19 +76,16 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn- track-uri [{id :id}]
-  (let [uri (cond (and (. @player -canPlayType)
-                       (not= "" (. @player canPlayType "audio/mpeg")))
-                  (str "/stream/track/" id ".mp3")
+  (cond (and (. @player -canPlayType)
+             (not= "" (. @player canPlayType "audio/mpeg")))
+        (str "/stream/track/" id ".mp3")
 
-                  (and (. @player -canPlayType)
-                       (not= "" (. @player canPlayType "audio/ogg")))
-                  (str "/stream/track/" id ".ogg")
+        (and (. @player -canPlayType)
+             (not= "" (. @player canPlayType "audio/ogg")))
+        (str "/stream/track/" id ".ogg")
 
-                  :else
-                  (str "/stream/track/" id ".mp3"))]
-    (if guser-agent/WEBKIT
-      (guri-utils/appendParam uri "wait" true)
-      uri)))
+        :else
+        (str "/stream/track/" id ".mp3")))
 
 (defn stop []
   (reset! playing-state false)

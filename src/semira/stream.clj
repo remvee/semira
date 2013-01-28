@@ -30,7 +30,7 @@
 
 (def conversions ^{:private true} (atom #{}))
 
-(defn- convert [track type & {wait :wait}]
+(defn- convert [track type]
   (let [filename (cache-file track type)
         decoder (condp re-matches (:path track)
                   #".*\.flac" "flacdec" ; gst good
@@ -59,9 +59,7 @@
                        (printf "ERROR: %s: %s"
                                (pr-str command)
                                (slurp (.getErrorStream process)))))]
-      (if wait
-        (guardian)
-        (.start (Thread. guardian))))))
+      (.start (Thread. guardian)))))
 
 (defn- live-input [track type]
   (let [filename (cache-file track type)
@@ -102,7 +100,7 @@
   "Return an input stream of given type for the given object."
   object-type)
 
-(defmethod get :track [track type & {wait :wait}]
+(defmethod get :track [track type]
   (locking get
     (let [filename (cache-file track type)]
       (cond
@@ -114,10 +112,10 @@
 
        :else
        (do
-         (convert track type :wait wait)
+         (convert track type)
          (live-input track type))))))
 
-(defmethod get :album [album type & {wait :wait}]
+(defmethod get :album [album type]
   (let [pipe (PipedInputStream.)
         out (PipedOutputStream. pipe)]
     (.start
@@ -125,7 +123,7 @@
       (fn []
         (try
           (doseq [track (:tracks album)]
-            (with-open [in (get track type :wait wait)]
+            (with-open [in (get track type)]
               (io/copy in out)))
           (catch IOException _) ; pipe closed
           (finally (.close out))))))
