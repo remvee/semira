@@ -38,7 +38,7 @@
                   #".*\.mp3"  "flump3dec" ; gst fluendo-mp3
                   #".*\.m4a"  "ffdemux_mov_mp4_m4a_3gp_3g2_mj2 ! faad") ; gst ffmpeg, bad
         encoder (condp = type
-                    "audio/mpeg" ["lame" "mode=1" (str "bitrate=" *bitrate*) "!" "id3mux"] ; gst ugly, bad
+                    "audio/mpeg" ["lame" "mode=1" (str "bitrate=" *bitrate*) "!" "xingmux" "!" "id3mux"] ; gst ugly, bad
                     "audio/ogg" ["vorbisenc" (str "bitrate=" (* *bitrate* 1000)) ")!" "oggmux"]) ; gst base
         command (flatten ["gst-launch" "-q"
                           "filesrc" "location=" (:path track) "!"

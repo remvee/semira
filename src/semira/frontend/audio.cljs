@@ -94,7 +94,7 @@
   (reset! playing-state false)
   (gevents/removeAll @player)
   (try
-    (set! (. @player -src) "")
+    (aset @player "src" "")
     (. @player (load))
     (catch js/Error e))
   (update-current))
@@ -102,8 +102,8 @@
 (defn- play-first []
   (when (current)
     (. @player (pause))
-    (set! (. @player -autoplay) true)
-    (set! (. @player -src) (track-uri (current)))
+    (aset @player "autoplay" true)
+    (aset @player "src" (track-uri (current)))
     (. @player (load))
     (reset! playing-state true)
     (update-current)))
