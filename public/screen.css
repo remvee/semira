@@ -13,7 +13,7 @@ a, a:link, a:visited {
     cursor: pointer;
 }
 a:focus, a:hover {
-    background: #eee;
+    background: #f8f8f8;
 }
 input, button {
     border-radius: 3px;

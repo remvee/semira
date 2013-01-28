@@ -39,13 +39,12 @@
 (defn album-container [id]
   (utils/by-id (str "album-" id)))
 
-(defn album-busy [id state]
-  (let [album (gdom/getAncestorByTagNameAndClass (album-container id) "li" "album")]
-    (utils/busy album state)))
+(defn album-item [id]
+  (gdom/getAncestorByTagNameAndClass (album-container id) "li" "album"))
 
-(defn album-collapse [id]
-  (album-busy id false)
-  (gdom/removeChildren (album-container id)))
+(defn album-busy [id state]
+  (let [album (album-item id)]
+    (utils/busy album state)))
 
 (defn albums-update [albums & {offset :offset end-reached :end-reached}]
   (doseq [id ["albums-more" "search-query"]]
@@ -78,9 +77,24 @@
 
 (defn album-update [album]
   (album-busy (:id album) false)
-  (let [container (album-container (:id album))]
-    (gdom/removeChildren container)
-    (gdom/append container (html/build (album-listing album)))))
+  (let [item (album-item (:id album))
+        container (album-container (:id album))]
+    (when item
+      (gdom/removeChildren container)
+      (gdom/append container (html/build (album-listing album)))
+      (.focus item)
+      (.scrollIntoView item))))
+
+(defn album-load [id]
+  (album-busy id true)
+  (state/album id album-update))
+
+(defn album-unload [id]
+  (album-busy id false)
+  (gdom/removeChildren (album-container id)))
+
+(defn album-loaded? [id]
+  (utils/first-by-tag-class "ol" "tracks" (album-container id)))
 
 (defn albums-more []
   (utils/busy (utils/by-id "albums-more") true)
@@ -90,10 +104,9 @@
 (albums-more)
 
 (defn album-toggle [id]
-  (album-busy id true)
-  (if (utils/first-by-tag-class "ol" "tracks" (album-container id))
-    (album-collapse id)
-    (state/album id album-update)))
+  (if (album-loaded? id)
+    (album-unload id)
+    (album-load id)))
 
 (defn album-search []
   (utils/busy (utils/by-id "search-query") true)
