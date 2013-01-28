@@ -16,6 +16,32 @@
 (def player (atom (utils/by-id "player")))
 (def playing-state (atom false))
 
+(defn player-inspect []
+  (assoc
+      (reduce (fn [m k]
+                (assoc m k (aget @player k)))
+              {}
+              ["autoplay"
+               "controls"
+               "currentTime"
+               "defaultMuted"
+               "defaultPlaybackRate"
+               "duration"
+               "ended"
+               "initialTime"
+               "loop"
+               "muted"
+               "networkState"
+               "paused"
+               "playbackRate"
+               "preload"
+               "readyState"
+               "seeking"
+               "volume"])
+    "error" (if (.-error @player)
+              (.-code (.-error @player))
+              nil)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn current []
@@ -24,8 +50,11 @@
 (defn current-time []
   (. @player -currentTime))
 
+(defn player-ready-state []
+  (. @player -readyState))
+
 (defn loading? []
-  (and @playing-state (< (. @player -readyState) 4)))
+  (and @playing-state (< (player-ready-state) 4)))
 
 (defn playing? []
   (and @playing-state (not (. @player -paused)) (not (loading?))))

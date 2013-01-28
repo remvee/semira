@@ -24,6 +24,8 @@
 (def window (js* "window"))
 (def page-size 15)
 
+(def debugging (re-find #"\?debug" (. window/location -href)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (declare album-listing album-row album-more-row album-not-found album-toggle)
@@ -151,7 +153,9 @@
     (utils/inner-html
      track-current-time
      (if (or (audio/playing?) (audio/paused?))
-       (str (utils/seconds->time (js/Math.round (audio/current-time))) " / ")
+       (str
+        (if debugging (str (pr-str (audio/player-inspect)) " "))
+        (utils/seconds->time (js/Math.round (audio/current-time))) " / ")
        ""))))
 
 (swap! audio/update-current-fns conj update-current-state)
@@ -198,5 +202,5 @@
    [:img {:src "/images/more.png" :alt "&rarr;"}]])
 
 ;; a repl for debugging..
-(when (re-find #"\?debug" (. window/location -href))
+(when debugging
   (repl/connect "http://localhost:9000/repl"))
