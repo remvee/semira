@@ -76,11 +76,6 @@
     (set! (. @player -autoplay) true)
     (set! (. @player -src) (track-uri (current)))
     (. @player (load))
-    (gevents/listen @player "ended"
-                    (fn []
-                      (stop)
-                      (swap! queue next)
-                      (play-first)))
     (reset! playing-state true)
     (update-current)))
 
@@ -94,6 +89,12 @@
     (. @player (play))
     (. @player (pause))))
 
-;; android:
-;; * can not play without content-length
-;; * optional lower bitrate for non wifi playback
+;; Advance to next track when player get status ended.  Listening for
+;; the "ended" event isn't very reliable unfortunately.
+(let [timer (goog.Timer. 100)]
+  (gevents/listen timer goog.Timer/TICK
+                  #(when (.-ended @player)
+                     (stop)
+                     (swap! queue next)
+                     (play-first)))
+  (. timer (start)))
