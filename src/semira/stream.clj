@@ -15,7 +15,7 @@
 
 (def cache-dir (clojure.core/get (System/getenv) "SEMIRA_CACHE_DIR"
                                  "/tmp/semira"))
-(def ^:dynamic *bitrate* 80)
+(def ^:dynamic *bitrate* 96)
 
 ;; ensure cache directory exists
 (utils/mkdirs cache-dir)
