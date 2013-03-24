@@ -12,8 +12,9 @@ a, a:link, a:visited {
     color: #000;
     cursor: pointer;
 }
-a:focus, a:hover {
+.album-info:focus, .track:focus {
     background: #f8f8f8;
+    outline: 0;
 }
 input, button {
     border-radius: 3px;
@@ -30,7 +31,7 @@ img {
     border: none;
 }
 
-html .busy {
+html .busy, html .track.busy, html .album.busy {
     background-color: #ccc;
     background-image: url("../images/blink.gif");
 }

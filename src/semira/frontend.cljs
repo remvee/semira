@@ -7,6 +7,7 @@
 ;; this software.
 
 (ns semira.frontend
+  (:refer-clojure :exclude [next])
   (:require [semira.frontend.audio :as audio]
             [semira.frontend.html :as html]
             [semira.frontend.state :as state]
@@ -22,17 +23,18 @@
 (def gevent-keycodes goog.events.KeyCodes)
 
 (def page-size 15)
+(declare next prev)
 (def key-bindings {#{(. gevent-keycodes -PAUSE)
                      (. gevent-keycodes -SPACE)}
-                   audio/play-pause
+                   #(audio/play-pause)
 
                    #{(. gevent-keycodes -N)
                      (. gevent-keycodes -RIGHT)}
-                   audio/next
+                   #(next)
 
                    #{(. gevent-keycodes -P)
                      (. gevent-keycodes -LEFT)}
-                   audio/prev
+                   #(prev)
 
                    #{(. gevent-keycodes -S)}
                    #(.focus (utils/by-id "search-query"))})
@@ -144,30 +146,51 @@
                       (.preventDefault event)
                       (f)))))
 
+(defn current-album-el []
+  (utils/by-id (str "album-" (:album-id (audio/current)))))
+
+(defn current-track-el []
+  (utils/by-id (str "track-" (:id (audio/current)))))
+
+(defn current-track-time-el []
+  (utils/by-id (str "track-current-time-" (:id (audio/current)))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn track-play [id album]
+(defn focus-current-track []
+  (when-let [track (current-track-el)] (.focus track)))
+
+(defn play [id album]
   (let [col (map (fn [x] {:id (:id x) :album-id (:id album)})
                  (:tracks album))
         pos (count (take-while (fn [x] (not= id (:id x)))
                                col))]
     (if (= (nth col pos) (audio/current))
       (audio/play-pause)
-      (audio/play col pos))))
+      (audio/play col pos))
+    (focus-current-track)))
+
+(defn next []
+  (audio/next)
+  (focus-current-track))
+
+(defn prev []
+  (audio/prev)
+  (focus-current-track))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn update-current-state []
-  (when-let [track (utils/by-id (str "track-" (:id (audio/current))))]
+  (when-let [track (current-track-el)]
     (gclasses/enable track "playing" (audio/playing?))
     (gclasses/enable track "paused" (audio/paused?))
     (utils/busy track (and (audio/loading?))))
-  (when-let [album (utils/by-id (str "album-" (:album-id (audio/current))))]
+  (when-let [album (current-album-el)]
     (gclasses/enable (. album -parentNode) "playing" (audio/playing?))
     (gclasses/enable (. album -parentNode) "paused" (audio/paused?))))
 
 (defn update-current-time []
-  (if-let [track-current-time (utils/by-id (str "track-current-time-" (:id (audio/current))))]
+  (if-let [track-current-time (current-track-time-el)]
     (utils/inner-html
      track-current-time
      (if (or (audio/playing?) (audio/paused?))
@@ -189,7 +212,7 @@
   (let [id (:id track)]
     [:a.track {:id (str "track-" id)
                :href "#"
-               :onclick #(onclick % track-play id album)}
+               :onclick #(onclick % play id album)}
      [:span.title
       (utils/interposed-html track " / " [:composer :artist :album :title])]
      " "
