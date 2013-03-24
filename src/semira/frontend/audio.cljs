@@ -7,6 +7,7 @@
 ;; this software.
 
 (ns semira.frontend.audio
+  (:refer-clojure :exclude [next])
   (:require [semira.frontend.utils :as utils]
             [goog.events :as gevents]
             [goog.uri.utils :as guri-utils]
@@ -115,12 +116,15 @@
     (. @player (play))
     (. @player (pause))))
 
+(defn next []
+  (stop)
+  (swap! queue cljs.core/next)
+  (play-first))
+
 ;; Advance to next track when player get status ended.  Listening for
 ;; the "ended" event isn't very reliable unfortunately.
 (let [timer (goog.Timer. 100)]
   (gevents/listen timer goog.Timer/TICK
                   #(when (.-ended @player)
-                     (stop)
-                     (swap! queue next)
-                     (play-first)))
+                     (next)))
   (. timer (start)))

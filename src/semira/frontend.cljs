@@ -21,9 +21,16 @@
 (def gevent-type goog.events.EventType)
 (def gevent-keycodes goog.events.KeyCodes)
 
-(def window (js* "window"))
 (def page-size 15)
+(def key-bindings {#{(. gevent-keycodes -PAUSE)
+                     (. gevent-keycodes -SPACE)}
+                   audio/play-pause
 
+                   #{(. gevent-keycodes -N)
+                     (. gevent-keycodes -RIGHT)}
+                   audio/next})
+
+(def window (js* "window"))
 (def debugging (re-find #"\?debug" (. window/location -href)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -124,18 +131,21 @@
 (gevents/listen window
                 (. gevent-type -KEYDOWN)
                 (fn [event]
-                  (when (and (not (= "INPUT" (.. event -target -tagName)))
-                             (#{(. gevent-keycodes -PAUSE)
-                                (. gevent-keycodes -SPACE)} (. event -keyCode)))
-                    (.preventDefault event)
-                    (audio/play-pause))))
+                  (when (not (= "INPUT" (.. event -target -tagName)))
+                    (when-let [f (last (first (filter #((first %) (. event -keyCode))
+                                                      key-bindings)))]
+                      (.preventDefault event)
+                      (f)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn track-play [tracks]
-  (if (= (first tracks) (audio/current))
-    (audio/play-pause)
-    (audio/play tracks)))
+(defn track-play [id album]
+  (let [play-list (drop-while (fn [x] (not= id (:id x)))
+                              (map (fn [x] {:id (:id x) :album-id (:id album)})
+                                   (:tracks album)))]
+    (if (= (first play-list) (audio/current))
+      (audio/play-pause)
+      (audio/play play-list))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -171,10 +181,7 @@
   (let [id (:id track)]
     [:a.track {:id (str "track-" id)
                :href "#"
-               :onclick #(onclick %
-                                  track-play (drop-while (fn [x] (not= id (:id x)))
-                                                         (map (fn [x] {:id (:id x) :album-id (:id album)})
-                                                              (:tracks album))))}
+               :onclick #(onclick % track-play id album)}
      [:span.title
       (utils/interposed-html track " / " [:composer :artist :album :title])]
      " "
