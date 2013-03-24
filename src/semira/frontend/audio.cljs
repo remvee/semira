@@ -13,9 +13,9 @@
             [goog.uri.utils :as guri-utils]
             [goog.userAgent :as guser-agent]))
 
-(def queue (atom ()))
 (def player (atom (utils/by-id "player")))
 (def playing-state (atom false))
+(def playlist-state (atom {}))
 
 (defn player-inspect []
   (assoc
@@ -46,7 +46,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn current []
-  (first @queue))
+  (let [state @playlist-state]
+    (if (:pos state) (nth (:col state) (:pos state)))))
 
 (defn current-time []
   (. @player -currentTime))
@@ -91,25 +92,25 @@
 (defn stop []
   (reset! playing-state false)
   (gevents/removeAll @player)
-  (try
-    (aset @player "src" "")
-    (. @player (load))
-    (catch js/Error e))
+  (when-not (.-ended @player)
+    (try
+      (aset @player "src" "")
+      (. @player (load))
+      (catch js/Error e)))
   (update-current))
 
-(defn- play-first []
-  (when (current)
-    (. @player (pause))
-    (aset @player "autoplay" true)
-    (aset @player "src" (track-uri (current)))
-    (. @player (load))
-    (reset! playing-state true)
-    (update-current)))
+(defn- start-current []
+  (. @player (pause))
+  (aset @player "autoplay" true)
+  (aset @player "src" (track-uri (current)))
+  (. @player (load))
+  (reset! playing-state true)
+  (update-current))
 
-(defn play [tracks]
+(defn play [col pos]
   (stop)
-  (reset! queue tracks)
-  (play-first))
+  (reset! playlist-state {:pos pos :col col})
+  (start-current))
 
 (defn play-pause []
   (if (. @player -paused)
@@ -117,14 +118,30 @@
     (. @player (pause))))
 
 (defn next []
-  (stop)
-  (swap! queue cljs.core/next)
-  (play-first))
+  (let [state @playlist-state
+        pos (:pos state)
+        last-pos (dec (count (:col state)))]
+    (when (and pos (< pos last-pos))
+      (stop)
+      (swap! playlist-state assoc :pos (inc pos))
+      (start-current)
+      true)))
+
+(defn prev []
+  (let [pos (:pos @playlist-state)]
+    (when (and pos (> pos 0))
+      (stop)
+      (swap! playlist-state assoc :pos (dec pos))
+      (start-current)
+      true)))
 
 ;; Advance to next track when player get status ended.  Listening for
 ;; the "ended" event isn't very reliable unfortunately.
 (let [timer (goog.Timer. 100)]
   (gevents/listen timer goog.Timer/TICK
-                  #(when (.-ended @player)
-                     (next)))
+                  #(when (and (.-ended @player)
+                              (not (next))
+                              (:pos @playlist-state))
+                     (stop)
+                     (swap! playlist-state assoc :pos nil)))
   (. timer (start)))

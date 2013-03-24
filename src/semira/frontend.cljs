@@ -28,7 +28,11 @@
 
                    #{(. gevent-keycodes -N)
                      (. gevent-keycodes -RIGHT)}
-                   audio/next})
+                   audio/next
+
+                   #{(. gevent-keycodes -P)
+                     (. gevent-keycodes -LEFT)}
+                   audio/prev})
 
 (def window (js* "window"))
 (def debugging (re-find #"\?debug" (. window/location -href)))
@@ -140,12 +144,13 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn track-play [id album]
-  (let [play-list (drop-while (fn [x] (not= id (:id x)))
-                              (map (fn [x] {:id (:id x) :album-id (:id album)})
-                                   (:tracks album)))]
-    (if (= (first play-list) (audio/current))
+  (let [col (map (fn [x] {:id (:id x) :album-id (:id album)})
+                 (:tracks album))
+        pos (count (take-while (fn [x] (not= id (:id x)))
+                               col))]
+    (if (= (nth col pos) (audio/current))
       (audio/play-pause)
-      (audio/play play-list))))
+      (audio/play col pos))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
