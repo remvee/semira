@@ -32,7 +32,10 @@
 
                    #{(. gevent-keycodes -P)
                      (. gevent-keycodes -LEFT)}
-                   audio/prev})
+                   audio/prev
+
+                   #{(. gevent-keycodes -S)}
+                   #(.focus (utils/by-id "search-query"))})
 
 (def window (js* "window"))
 (def debugging (re-find #"\?debug" (. window/location -href)))
