@@ -8,3 +8,4 @@ classes
 /.lein-git-deps
 /.lein-plugins/checksum
 .repl
+/target/
