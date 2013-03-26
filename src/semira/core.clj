@@ -13,4 +13,4 @@
 (defn -main []
   (let [host (get (System/getenv) "HOST")
         port (Integer/parseInt (get (System/getenv) "PORT" "8080"))]
-    (run-jetty app {:host host :port port})))
+    (run-jetty #'app {:host host :port port})))

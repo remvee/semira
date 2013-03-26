@@ -17,6 +17,8 @@
 (def rss-description "Latest additions")
 
 (def ^:dynamic *page-size* 20)
+(def album-keys [:genre :composer :artist :album :year :id]) ; also sort order!
+(def track-keys [:id :composer :artist :album :title :length])
 
 (defn tracks [album]
   (hiccup/html
@@ -57,20 +59,21 @@
 
 (compojure/defroutes handler
   (compojure/GET "/album/:id" [id]
-                 (let [album (dissoc (models/album-by-id id) :doc)]
+                 (let [album (models/album-by-id id)
+                       album (assoc (select-keys album album-keys)
+                               :tracks (map #(select-keys % track-keys) (:tracks album)))]
                    {:status 200
                     :headers {"Content-Type" "application/clojure; charset=utf-8"}
                     :body (pr-str album)}))
-  (compojure/GET "/albums" [offset limit keys query]
+  (compojure/GET "/albums" [offset limit query]
                  (let [offset (if offset (Integer/valueOf offset) 0)
                        limit (if limit (Integer/valueOf limit) *page-size*)
-                       keys (if keys (map keyword keys) [:genre :composer :artist :album :year :id])
                        sorter (if (empty? query)
                                 #(reverse (sort-by :mtime %))
-                                #(utils/sort-by-keys % keys))
+                                #(utils/sort-by-keys % album-keys))
                        albums (take limit
                                     (drop offset
-                                          (map #(select-keys % keys)
+                                          (map #(select-keys % album-keys)
                                                (sorter (models/albums {:query query})))))]
                    {:status 200
                     :headers {"Content-Type" "application/clojure; charset=utf-8"}
