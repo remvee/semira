@@ -193,7 +193,7 @@
   (if-let [track-current-time (current-track-time-el)]
     (utils/inner-html
      track-current-time
-     (if (or (audio/playing?) (audio/paused?))
+     (if (or (audio/playing?) (audio/paused?) debugging)
        (str
         (if debugging (str (pr-str (audio/player-inspect)) " "))
         (utils/seconds->time (js/Math.round (audio/current-time))) " / ")
