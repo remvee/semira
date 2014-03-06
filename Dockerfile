@@ -1,16 +1,7 @@
 FROM ubuntu
 
-# ensure apt gets existing packages
-RUN apt-get update -y
-
 # installation dependencies
-RUN apt-get install -y wget
-
-# application dependencies
-RUN apt-get install -y openjdk-6-jre-headless
-
-# audio transcoding dependencies
-RUN apt-get install -y gstreamer-tools gstreamer0.10-plugins-good gstreamer0.10-plugins-bad gstreamer0.10-plugins-ugly gstreamer0.10-fluendo-mp3 lame
+RUN apt-get update -y && apt-get install -y wget openjdk-6-jre-headless gstreamer-tools gstreamer0.10-plugins-good gstreamer0.10-plugins-bad gstreamer0.10-plugins-ugly gstreamer0.10-fluendo-mp3 lame
 
 # setup leiningen
 ENV LEIN_ROOT 1
