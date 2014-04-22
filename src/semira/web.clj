@@ -15,7 +15,7 @@
    [ring.middleware.params :only [wrap-params]]
    [ring.middleware.file :only [wrap-file]]
    [ring.middleware.file-info :only [wrap-file-info]]
-   [remvee.ring.middleware.partial-content :only [wrap-partial-content]]))
+   [ring.middleware.partial-content :only [wrap-partial-content]]))
 
 (defroutes handler
   web-albums/handler
