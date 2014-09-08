@@ -9,13 +9,12 @@ RUN wget -O /usr/local/bin/lein https://github.com/technomancy/leiningen/raw/sta
 RUN chmod +x /usr/local/bin/lein
 RUN lein version
 
-# setup app user
+# setup app user and directory
 RUN yes | adduser app
-USER app
-
-# setup application directory
 ADD . /app
+RUN chown -R app /app
 WORKDIR /app
+USER app
 
 # build application
 RUN lein deps
