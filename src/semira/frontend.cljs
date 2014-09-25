@@ -101,7 +101,8 @@
       (gdom/removeChildren container)
       (gdom/append container (html/build (album-listing album)))
       (.focus item)
-      (.scrollIntoView item))))
+      (.scrollIntoView item)
+      (. history (replaceToken (:id album))))))
 
 (defn album-load [id]
   (album-busy id true)

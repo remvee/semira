@@ -9,3 +9,5 @@ classes
 /.lein-plugins/checksum
 .repl
 /target/
+/.lein-repl-history
+/.nrepl-port
