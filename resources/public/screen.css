@@ -33,7 +33,7 @@ img {
 
 html .busy, html .track.busy, html .album.busy {
     background-color: #ccc;
-    background-image: url("../images/blink.gif");
+    background-image: url("../blink.gif");
 }
 .playing .playing, .playing .album-info, .paused .paused, .paused .album-info {
     background-color: #ddd;

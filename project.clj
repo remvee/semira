@@ -1,15 +1,17 @@
 (defproject semira "1.0.0-SNAPSHOT"
   :main semira.core
   :description "Semira sings songs."
-  :dependencies [[org.clojure/clojure "1.4.0"]
-                 [compojure "1.1.3"]
-                 [hiccup "1.0.1"]
-                 [ring/ring-core "1.1.6"]
-                 [ring/ring-jetty-adapter "1.1.6"]
+  :dependencies [[org.clojure/clojure "1.7.0"]
+                 [org.clojure/clojurescript "1.7.145"]
+                 [compojure "1.4.0"]
+                 [ring/ring-jetty-adapter "1.4.0"]
+                 [hiccup "1.0.5"]
                  [ring-partial-content "1.0.0"]
                  [org/jaudiotagger "2.0.3"]]
-  :plugins [[lein-cljsbuild "0.3.0"]]
-  :cljsbuild {:builds [{:optimizations :advanced
-                        :source-paths ["src"]
-                        :compiler {:output-to "public/semira.js"
-                                   :output-dir "public/semira"}}]})
+
+  :plugins [[lein-cljsbuild "1.1.0"]]
+
+  :cljsbuild {:builds {:prod {:source-paths ["src"]
+                              :compiler {:optimizations :advanced
+                                         :output-to "resources/public/semira.js"
+                                         :output-dir "resources/public/semira"}}}})
