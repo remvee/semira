@@ -16,8 +16,7 @@
             [goog.events.KeyCodes :as gevents-keycodes]
             [goog.dom :as gdom]
             [goog.dom.classes :as gclasses]
-            [goog.History :as ghist]
-            [clojure.browser.repl :as repl]))
+            [goog.History :as ghist]))
 
 (def gevent-type goog.events.EventType)
 (def gevent-keycodes goog.events.KeyCodes)
@@ -39,8 +38,7 @@
                    #{(. gevent-keycodes -S)}
                    #(.focus (utils/by-id "search-query"))})
 
-(def window (js* "window"))
-(def debugging (re-find #"\?debug" (. window/location -href)))
+(def debugging (re-find #"\?debug" (-> js/window .-location .-href)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -138,7 +136,7 @@
                 #(do (. % (preventDefault))
                      (album-search)))
 
-(gevents/listen window
+(gevents/listen js/window
                 (. gevent-type -KEYDOWN)
                 (fn [event]
                   (when (not (= "INPUT" (.. event -target -tagName)))
@@ -239,7 +237,3 @@
 (defn album-more-row []
   [:a#albums-more.more {:href "#" :onclick #(onclick % albums-more)}
    [:img {:src "/images/more.png" :alt "&rarr;"}]])
-
-;; a repl for debugging..
-(when debugging
-  (repl/connect "http://localhost:9000/repl"))

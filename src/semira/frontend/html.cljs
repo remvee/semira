@@ -28,7 +28,7 @@
 
 (defn- build-node [tag args]
   (let [[tag attrs text] (normalize (name tag) args)
-        e (gdom/createDom tag (.-strobj attrs))]
+        e (gdom/createDom tag (clj->js attrs))]
     (if text (gdom/setTextContent e text))
     (if (:onclick attrs) (gevents/list e (. gevent-type -CLICK) (:onclick attrs)))
     e))

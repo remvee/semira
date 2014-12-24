@@ -11,7 +11,8 @@
   (:require [semira.frontend.utils :as utils]
             [goog.events :as gevents]
             [goog.uri.utils :as guri-utils]
-            [goog.userAgent :as guser-agent]))
+            [goog.userAgent :as guser-agent]
+            [goog.Timer :as gtimer]))
 
 (def player (atom (utils/by-id "player")))
 (def playing-state (atom false))
