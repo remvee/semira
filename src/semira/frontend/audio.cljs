@@ -80,12 +80,12 @@
 
 (defn- track-uri [{id :id}]
   (cond (and (. @player -canPlayType)
-             (not= "" (. @player canPlayType "audio/mpeg")))
-        (str "/stream/track/" id ".mp3")
-
-        (and (. @player -canPlayType)
              (not= "" (. @player canPlayType "audio/ogg")))
         (str "/stream/track/" id ".ogg")
+
+        (and (. @player -canPlayType)
+             (not= "" (. @player canPlayType "audio/mpeg")))
+        (str "/stream/track/" id ".mp3")
 
         :else
         (str "/stream/track/" id ".mp3")))
