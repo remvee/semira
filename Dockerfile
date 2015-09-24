@@ -17,10 +17,8 @@ WORKDIR /home/app
 USER app
 
 # build application
-RUN lein deps
-RUN lein cljsbuild clean
-RUN lein cljsbuild once
+RUN lein uberjar
 
 # go!
-CMD lein run
+CMD jar -jar target/semira.jar
 EXPOSE 8080

@@ -1,5 +1,4 @@
 (defproject semira "1.0.0-SNAPSHOT"
-  :main semira.core
   :description "Semira sings songs."
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [org.clojure/clojurescript "0.0-2511" :scope "provided"]
@@ -12,4 +11,9 @@
   :cljsbuild {:builds [{:optimizations :advanced
                         :source-paths ["src"]
                         :compiler {:output-to "public/semira.js"
-                                   :output-dir "public/semira"}}]})
+                                   :output-dir "public/semira"}}]}
+
+  :main semira.core
+  :uberjar-name "semira.jar"
+  :profiles {:uberjar {:aot :all
+                       :hooks [leiningen.cljsbuild]}})

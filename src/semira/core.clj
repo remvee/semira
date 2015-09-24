@@ -7,8 +7,9 @@
 ;; this software.
 
 (ns semira.core
-  (:use semira.web
-        ring.adapter.jetty))
+  (:require [semira.web :refer [app]]
+            [ring.adapter.jetty :refer [run-jetty]])
+  (:gen-class))
 
 (defn -main []
   (let [host (get (System/getenv) "HOST")
