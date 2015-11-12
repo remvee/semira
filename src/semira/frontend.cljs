@@ -49,9 +49,6 @@
 
 (def history (goog.History.))
 
-(let [query (. history (getToken))]
-  (set! (. (utils/by-id "search-query") -value) query))
-
 (defn album-container [id]
   (utils/by-id (str "album-" id)))
 
@@ -118,8 +115,6 @@
   (utils/scroll-into-view (utils/by-id "albums-more")) ; workaround android browser jumping to top somethings (why does it do that?)
   (state/more-albums (albums-query) page-size albums-update))
 
-(albums-more)
-
 (defn album-toggle [id]
   (if (album-loaded? id)
     (album-unload id)
@@ -130,20 +125,6 @@
   (. history (replaceToken (albums-query)))
   (state/clear-albums)
   (albums-more))
-
-(gevents/listen (utils/by-id "search")
-                (. gevent-type -SUBMIT)
-                #(do (. % (preventDefault))
-                     (album-search)))
-
-(gevents/listen js/window
-                (. gevent-type -KEYDOWN)
-                (fn [event]
-                  (when (not (= "INPUT" (.. event -target -tagName)))
-                    (when-let [f (last (first (filter #((first %) (. event -keyCode))
-                                                      key-bindings)))]
-                      (.preventDefault event)
-                      (f)))))
 
 (defn current-album-el []
   (utils/by-id (str "album-" (:album-id (audio/current)))))
@@ -198,9 +179,6 @@
         (utils/seconds->time (js/Math.round (audio/current-time))) " / ")
        ""))))
 
-(swap! audio/update-current-fns conj update-current-state)
-(swap! audio/update-current-fns conj update-current-time)
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn onclick [event f & args]
@@ -237,3 +215,26 @@
 (defn album-more-row []
   [:a#albums-more.more {:href "#" :onclick #(onclick % albums-more)}
    [:img {:src "/images/more.png" :alt "&rarr;"}]])
+
+(defn ^:export run []
+  (let [query (. history (getToken))]
+    (set! (. (utils/by-id "search-query") -value) query))
+
+  (albums-more)
+
+  (gevents/listen (utils/by-id "search")
+                  (. gevent-type -SUBMIT)
+                  #(do (. % (preventDefault))
+                       (album-search)))
+
+  (gevents/listen js/window
+                  (. gevent-type -KEYDOWN)
+                  (fn [event]
+                    (when (not (= "INPUT" (.. event -target -tagName)))
+                      (when-let [f (last (first (filter #((first %) (. event -keyCode))
+                                                        key-bindings)))]
+                        (.preventDefault event)
+                        (f)))))
+
+  (swap! audio/update-current-fns conj update-current-state)
+  (swap! audio/update-current-fns conj update-current-time))
