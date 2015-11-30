@@ -7,15 +7,17 @@
 ;; this software.
 
 (ns semira.web
-  (:require
-   [semira.web.albums :as web-albums]
-   [semira.web.stream :as web-stream]
-   [compojure.core :refer [defroutes GET]]
-   [compojure.route :refer [resources]]
-   [ring.middleware.params :refer [wrap-params]]
-   [ring.middleware.file-info :refer [wrap-file-info]]
-   [ring.middleware.partial-content :refer [wrap-partial-content]]
-   [ring.util.response :refer [content-type resource-response]]))
+  (:require [compojure
+             [core :refer [defroutes GET]]
+             [route :refer [resources]]]
+            [ring.middleware
+             [file-info :refer [wrap-file-info]]
+             [params :refer [wrap-params]]
+             [partial-content :refer [wrap-partial-content]]]
+            [ring.util.response :refer [content-type resource-response]]
+            [semira.web
+             [albums :as web-albums]
+             [stream :as web-stream]]))
 
 (defroutes handler
   web-albums/handler

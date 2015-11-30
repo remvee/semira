@@ -7,10 +7,11 @@
 ;; this software.
 
 (ns semira.models
-  (:require [semira.audio :as audio]
-            [semira.utils :as utils]
-            [clojure.java.io :as io]
-            [clojure.string :as s])
+  (:require [clojure.java.io :as io]
+            [clojure.string :as s]
+            [semira
+             [audio :as audio]
+             [utils :as utils]])
   (:import [java.io File FileInputStream FileOutputStream PushbackReader]))
 
 (def albums-file (get (System/getenv) "SEMIRA_ALBUMS_SEXP"
@@ -80,9 +81,10 @@
                              :id :mtime :path :title :track :length))]
     (merge
      (select-keys (first tracks) common)
-     {:tracks (vec (utils/sort-by-keys (map #(apply dissoc % common)
-                                            tracks)
-                                       [:track :path :title]))}
+     {:tracks (->> tracks
+                   (map #(apply dissoc % common))
+                   (utils/sort-by-keys [:track :path :title])
+                   vec)}
      (select-keys album [:id :mtime]))))
 
 (defn update-track [albums track]

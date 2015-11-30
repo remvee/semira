@@ -16,34 +16,14 @@
     <link href="/screen.css" rel="stylesheet" type="text/css">
   </head>
   <body>
-    <div id="container">
-      <div>
-        <div class="header">
-          <form class="search" id="search" method="get">
-            <span class="input">
-              <input id="search-query" name="query" type="text" value="">
-            </span>
-            <span class="button">
-              <button type="submit">Go!</button>
-            </span>
-          </form>
-        </div>
-        <ul class="albums" id="albums">
-          <li id="albums-more">..</li>
-        </ul>
-
-        <audio controls="controls" id="player" style="display:none;margin-left:-1000px"></audio>
-      </div>
-    </div>
-
+    <h1>SEMIRA</h1>
+    <div id="container"></div>
+    <audio controls="" style="display:none;margin-left:-1000px;" id="player"></audio>
+    
     <script src="/semira-dev/goog/base.js" type="text/javascript"></script>
     <script src="/semira-dev.js" type="text/javascript"></script>
     <script type="text/javascript">
       goog.require('semira.frontend');
-      goog.require('semira.figwheel');
-    </script>
-    <script type="text/javascript">
-      semira.figwheel.run(semira.frontend.run);
     </script>
   </body>
 </html>

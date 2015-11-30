@@ -8,141 +8,119 @@
 
 (ns semira.frontend.audio
   (:refer-clojure :exclude [next])
-  (:require [semira.frontend.utils :as utils]
-            [goog.events :as gevents]
-            [goog.uri.utils :as guri-utils]
-            [goog.userAgent :as guser-agent]
-            [goog.Timer :as gtimer]))
+  (:require [cljs.core.async :as async]
+            [reagent.core :as reagent])
+  (:require-macros [cljs.core.async.macros :as async]))
 
-(def player (atom (utils/by-id "player")))
-(def playing-state (atom false))
-(def playlist-state (atom {}))
-
-(defn player-inspect []
-  (assoc
-      (reduce (fn [m k]
-                (assoc m k (aget @player k)))
-              {}
-              ["autoplay"
-               "controls"
-               "currentTime"
-               "defaultMuted"
-               "defaultPlaybackRate"
-               "duration"
-               "ended"
-               "initialTime"
-               "loop"
-               "muted"
-               "networkState"
-               "paused"
-               "playbackRate"
-               "preload"
-               "readyState"
-               "seeking"
-               "volume"])
-    "error" (if (.-error @player)
-              (.-code (.-error @player))
-              nil)))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defn current []
-  (let [state @playlist-state]
-    (if (:pos state) (nth (:col state) (:pos state)))))
-
-(defn current-time []
-  (. @player -currentTime))
-
-(defn player-ready-state []
-  (. @player -readyState))
-
-(defn loading? []
-  (and @playing-state (< (player-ready-state) 4)))
-
-(defn playing? []
-  (and @playing-state (not (. @player -paused)) (not (loading?))))
-
-(defn paused? []
-  (and @playing-state (. @player -paused) (not (loading?))))
+(defonce state-atom (reagent/atom nil))
+(defonce play-queue-atom (reagent/atom nil))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def update-current-fns (atom ()))
+(defn- player []
+  (.getElementById js/document "player"))
 
-(defn- update-current []
-  (doseq [fn @update-current-fns] (fn)))
+(defn- track-uri [{:keys [id]}]
+  (when-let [player (player)]
+    (cond (and (.-canPlayType player)
+               (not= "" (.canPlayType player  "audio/mpeg")))
+          (str "/stream/track/" id ".mp3")
 
-(let [timer (goog.Timer. 1000)]
-  (gevents/listen timer goog.Timer/TICK update-current)
-  (. timer (start)))
+          (and (.-canPlayType player)
+               (not= "" (.canPlayType player  "audio/ogg")))
+          (str "/stream/track/" id ".ogg")
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+          :else
+          (str "/stream/track/" id ".mp3"))))
 
-(defn- track-uri [{id :id}]
-  (cond (and (. @player -canPlayType)
-             (not= "" (. @player canPlayType "audio/mpeg")))
-        (str "/stream/track/" id ".mp3")
-
-        (and (. @player -canPlayType)
-             (not= "" (. @player canPlayType "audio/ogg")))
-        (str "/stream/track/" id ".ogg")
-
-        :else
-        (str "/stream/track/" id ".mp3")))
+(defn- load []
+  (when-let [player (player)]
+    (let [{:keys [tracks position]} @play-queue-atom]
+      (when-let [current (nth tracks position nil)]
+        (.pause player)
+        (aset player "autoplay" true)
+        (aset player "src" (track-uri current))
+        (.load player)
+        (swap! state-atom assoc :current-track current)))))
 
 (defn stop []
-  (reset! playing-state false)
-  (gevents/removeAll @player)
-  (when-not (.-ended @player)
-    (try
-      (aset @player "src" "")
-      (. @player (load))
-      (catch js/Error e)))
-  (update-current))
+  (when-let [player (player)]
+    (swap! state-atom assoc :current-track nil)
+    (when-not (.-ended player)
+      (try
+        (aset player "src" "")
+        (.load player)
+        (catch js/Error e)))))
 
-(defn- start-current []
-  (. @player (pause))
-  (aset @player "autoplay" true)
-  (aset @player "src" (track-uri (current)))
-  (. @player (load))
-  (reset! playing-state true)
-  (update-current))
-
-(defn play [col pos]
+(defn play [tracks pos]
   (stop)
-  (reset! playlist-state {:pos pos :col col})
-  (start-current))
+  (reset! play-queue-atom {:position pos, :tracks tracks})
+  (load))
 
 (defn play-pause []
-  (if (. @player -paused)
-    (. @player (play))
-    (. @player (pause))))
+  (when-let [player (player)]
+    (if (.-paused player)
+      (.play player)
+      (.pause player))))
 
 (defn next []
-  (let [state @playlist-state
-        pos (:pos state)
-        last-pos (dec (count (:col state)))]
-    (when (and pos (< pos last-pos))
-      (stop)
-      (swap! playlist-state assoc :pos (inc pos))
-      (start-current)
-      true)))
+  (swap! play-queue-atom update :position inc)
+  (load))
 
 (defn prev []
-  (let [pos (:pos @playlist-state)]
-    (when (and pos (> pos 0))
-      (stop)
-      (swap! playlist-state assoc :pos (dec pos))
-      (start-current)
-      true)))
+  (swap! play-queue-atom update :position dec)
+  (load))
 
-;; Advance to next track when player get status ended.  Listening for
-;; the "ended" event isn't very reliable unfortunately.
-(let [timer (goog.Timer. 100)]
-  (gevents/listen timer goog.Timer/TICK
-                  #(when (and (.-ended @player)
-                              (not (next))
-                              (:pos @playlist-state))
-                     (stop)
-                     (swap! playlist-state assoc :pos nil)))
-  (. timer (start)))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn- round-secs [n]
+  (.round js/Math n))
+
+(defn- get-player-state []
+  (let [player (player)]
+    {:error (when (.-error player)
+              (-> player .-error .-code))
+     :current-time (round-secs (aget player "currentTime"))
+     :ended (aget player "ended")
+     :muted (aget player "muted")
+     :network-state (case (aget player "networkState")
+                      0 :empty
+                      1 :idle
+                      2 :loading
+                      3 :no-source
+                      :unknown)
+     :ready-state (case (aget player "readyState")
+                    0 :nothing
+                    1 :meta-data
+                    2 :current-data
+                    3 :future-data
+                    4 :enough-data
+                    :unknown)
+     :seeking (aget player "seeking")
+     :volume (aget player "volume")
+     :paused (aget player "paused")}))
+
+(defn- update-state! []
+  (let [{:keys [current-track] :as state} @state-atom
+        new-state (assoc (get-player-state)
+                         :current-track current-track)]
+    (when-not (= new-state state)
+      (reset! state-atom new-state))
+    new-state))
+
+(defn state []
+  @state-atom)
+
+(defn setup! []
+  (async/go-loop []
+    (async/<! (async/timeout 50))
+
+    (update-state!)
+
+    ;; Advance to next track when player get status ended.  Listening for
+    ;; the "ended" event isn't very reliable unfortunately.
+    (when-let [player (player)]
+      (when (.-ended player)
+        (next)))
+
+    (recur)))

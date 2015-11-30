@@ -7,9 +7,9 @@
 ;; this software.
 
 (ns semira.core
-  (:require [semira.web :as web]
-            [ring.adapter.jetty :refer [run-jetty]])
-  (:gen-class))
+  (:gen-class)
+  (:require [ring.adapter.jetty :refer [run-jetty]]
+            [semira.web :as web]))
 
 (defonce server-atom (atom nil))
 

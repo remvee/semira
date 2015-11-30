@@ -7,6 +7,9 @@ body {
     font-family: Arial, Helvetica, sans-serif;
     font-size: 12px;
 }
+h1 {
+    display: none;
+}
 a, a:link, a:visited {
     text-decoration: none;
     color: #000;
@@ -45,7 +48,7 @@ html .busy, html .track.busy, html .album.busy {
     transition: all .5s;
     -moz-transition: all .5s;
 }
-div#container {
+#container {
     margin: auto;
     padding: 3px;
     max-width: 600px;
@@ -71,6 +74,10 @@ ul.albums li, ul.albums a.track {
     border-bottom: 1px solid #bbb;
     position: relative;
     cursor: pointer;
+}
+ul.albums li:last-child,
+ul.albums a.track:last-child {
+    border-bottom: none;
 }
 ul.albums li .album-info {
     display: block;
@@ -118,11 +125,9 @@ ol.tracks a.track .length {
     float: right;
     font-size: smaller;
 }
-
-#albums-more {
-    display: list-item;
+.loading {
+    line-height: 1.5em;
     text-align: center;
-    padding: 8px 0 3px 0;
 }
 
 .header {
@@ -130,19 +135,10 @@ ol.tracks a.track .length {
     margin: 0;
     padding: 0;
 }
-.search {
-    display: table-row;
-}
-.search span {
-    display: table-cell;
-    vertical-align: middle;
-}
-.search span.input {
-    width: 100%;
-    padding-right: 12px;
-}
 .search input {
     width: 100%;
+    line-height: 2em;
+    outline: none;
 }
 
 body.rss h1 {
@@ -185,7 +181,7 @@ body.rss .pubDate {
     body {
         font-family: Roboto, Arial, Helvetica, sans-serif;;
     }
-    div#container {
+    #container {
         margin: 0;
         padding: 0;
     }
@@ -198,5 +194,8 @@ body.rss .pubDate {
         border: none;
         border-radius: 0;
         -moz-border-radius: 0;
+    }
+    .search {
+        padding: 3px;
     }
 }
