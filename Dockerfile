@@ -1,13 +1,7 @@
 FROM ubuntu
 
 # installation dependencies
-RUN apt-get update -y && apt-get install -y wget openjdk-6-jre-headless gstreamer-tools gstreamer0.10-plugins-good gstreamer0.10-plugins-bad gstreamer0.10-plugins-ugly gstreamer0.10-fluendo-mp3 lame
-
-# setup leiningen
-ENV LEIN_ROOT 1
-RUN wget -O /usr/local/bin/lein https://github.com/technomancy/leiningen/raw/stable/bin/lein
-RUN chmod +x /usr/local/bin/lein
-RUN lein version
+RUN apt-get update -y && apt-get install -y wget openjdk-7-jre-headless gstreamer-tools gstreamer0.10-plugins-good gstreamer0.10-plugins-bad gstreamer0.10-plugins-ugly gstreamer0.10-fluendo-mp3 lame
 
 # setup app user and directory
 RUN yes | adduser app
@@ -15,12 +9,7 @@ ADD . /app
 RUN chown -R app /app
 WORKDIR /app
 USER app
-
-# build application
-RUN lein deps
-RUN lein cljsbuild clean
-RUN lein cljsbuild once
-
+RUN echo $HOME
 # go!
-CMD lein run
+CMD java -jar target/semira.jar
 EXPOSE 8080
