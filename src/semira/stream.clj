@@ -11,7 +11,7 @@
   (:require [clojure.java.io :as io]
             [clojure.string :as string]
             [semira.utils :as utils])
-  (:import [java.io File FileInputStream PipedInputStream PipedOutputStream IOException]))
+  (:import [java.io File FileInputStream IOException PipedInputStream PipedOutputStream]))
 
 (def cache-dir (clojure.core/get (System/getenv) "SEMIRA_CACHE_DIR"
                                  "/tmp/semira"))
@@ -40,7 +40,7 @@
         encoder (condp = type
                     "audio/mpeg" ["lame" "mode=1" (str "bitrate=" *bitrate*) "!" "xingmux" "!" "id3mux"] ; gst ugly, bad
                     "audio/ogg" ["vorbisenc" (str "bitrate=" (* *bitrate* 1000)) ")!" "oggmux"]) ; gst base
-        command (flatten ["gst-launch" "-q"
+        command (flatten ["gst-launch-0.10" "-q"
                           "filesrc" "location=" (:path track) "!"
                           decoder "!"
                           "audioconvert" "!"

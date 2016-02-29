@@ -7,11 +7,24 @@
 ;; this software.
 
 (ns semira.core
-  (:require [semira.web :refer [app]]
-            [ring.adapter.jetty :refer [run-jetty]])
-  (:gen-class))
+  (:gen-class)
+  (:require [ring.adapter.jetty :refer [run-jetty]]
+            [semira.web :as web]))
 
-(defn -main []
+(defonce server-atom (atom nil))
+
+(defn stop []
+  (when-let [server @server-atom]
+    (.stop server)
+    (reset! server-atom nil)))
+
+(defn start []
+  (stop)
   (let [host (get (System/getenv) "HOST")
         port (Integer/parseInt (get (System/getenv) "PORT" "8080"))]
-    (run-jetty #'app {:host host :port port})))
+    (reset! server-atom
+            (run-jetty #'web/app
+                       {:host host, :port port, :join? false}))))
+
+(defn -main [& [port]]
+  (start))

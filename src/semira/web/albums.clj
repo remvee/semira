@@ -7,13 +7,13 @@
 ;; this software.
 
 (ns semira.web.albums
-  (:require
-   [semira.models :as models]
-   [semira.utils :as utils]
-   [semira.web.core :as web]
-   [compojure.core :as compojure]
-   [hiccup.core :as hiccup]))
+  (:require [compojure.core :as compojure]
+            [hiccup.core :as hiccup]
+            [semira
+             [models :as models]
+             [utils :as utils]]))
 
+(def app-title "SEMIRA")
 (def rss-description "Latest additions")
 
 (def ^:dynamic *page-size* 20)
@@ -24,10 +24,11 @@
   (hiccup/html
    [:ol
     (map (fn [track]
-           (vec [:li (apply str (interpose " - "
-                                           (filter identity
-                                                   (flatten (map #(% track)
-                                                                 [:artist :album :title])))))]))
+           (vec [:li (apply str (->> [:artist :album :title]
+                                     (map #(% track))
+                                     flatten
+                                     (filter identity)
+                                     (interpose " - ")))]))
          (:tracks album))]))
 
 (defn date-rfc822 [date]
@@ -41,7 +42,7 @@
         {:mode :xml}
         [:rss
          [:channel
-          [:title web/app-title]
+          [:title app-title]
           [:link "#"]
           [:description rss-description]
           (map (fn [album]
@@ -66,15 +67,17 @@
                     :headers {"Content-Type" "application/clojure; charset=utf-8"}
                     :body (pr-str album)}))
   (compojure/GET "/albums" [offset limit query]
-                 (let [offset (if offset (Integer/valueOf offset) 0)
-                       limit (if limit (Integer/valueOf limit) *page-size*)
-                       sorter (if (empty? query)
-                                #(reverse (sort-by :mtime %))
-                                #(utils/sort-by-keys % album-keys))
-                       albums (take limit
-                                    (drop offset
-                                          (map #(select-keys % album-keys)
-                                               (sorter (models/albums {:query query})))))]
+                 (let [offset (if offset
+                                (partial drop (Integer/valueOf offset))
+                                identity)
+                       limit (if limit
+                               (partial take (Integer/valueOf limit))
+                               identity)
+                       albums (->> (models/albums {:query query})
+                                   (utils/sort-by-keys album-keys)
+                                   (map #(select-keys % album-keys))
+                                   offset
+                                   limit)]
                    {:status 200
                     :headers {"Content-Type" "application/clojure; charset=utf-8"}
                     :body (pr-str albums)}))

@@ -7,10 +7,10 @@
 ;; this software.
 
 (ns semira.web.stream
-  (:require
-   [semira.models :as models]
-   [semira.stream :as stream]
-   [compojure.core :as compojure]))
+  (:require [compojure.core :as compojure]
+            [semira
+             [models :as models]
+             [stream :as stream]]))
 
 (compojure/defroutes handler
   (compojure/GET "/stream/:model/:id.:ext" [model id ext :as request]

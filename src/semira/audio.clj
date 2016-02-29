@@ -7,11 +7,11 @@
 ;; this software.
 
 (ns semira.audio
-  (:import [java.io StringBufferInputStream]
-           [java.util.logging LogManager]
-           [org.jaudiotagger.audio AudioFileIO]
+  (:import java.io.StringBufferInputStream
+           java.util.logging.LogManager
+           org.jaudiotagger.audio.AudioFileIO
            [org.jaudiotagger.tag FieldKey Tag TagField TagTextField]
-           [org.jaudiotagger.tag.mp4 Mp4Tag Mp4FieldKey]))
+           [org.jaudiotagger.tag.mp4 Mp4FieldKey Mp4Tag]))
 
 ;; kill log messages from jaudiotagger
 (.readConfiguration (LogManager/getLogManager)

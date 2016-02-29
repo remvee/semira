@@ -7,11 +7,11 @@
 ;; this software.
 
 (ns semira.utils
-  (:require [clojure.string :as string])
-  (:use [hiccup.util :only [escape-html]])
+  (:require [clojure.string :as string]
+            [hiccup.util :refer :all])
   (:import [java.io File StringBufferInputStream]
-           [java.util.regex Pattern]
-           [java.security MessageDigest DigestInputStream]))
+           [java.security DigestInputStream MessageDigest]
+           java.util.regex.Pattern))
 
 (defn sha1
   "Calculate SHA1 digest for given string."
@@ -24,7 +24,7 @@
 
 (defn sort-by-keys
   "Sort coll of maps by value with ks defining precedence."
-  [coll ks]
+  [ks coll]
   (sort-by (fn [val] (vec (flatten (map #(get val %) ks)))) coll))
 
 (defn mkdirs

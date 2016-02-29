@@ -23,6 +23,7 @@ audio files are cached for later use.
 The source directory includes a Dockerfile to build a [[https://www.docker.io/][docker]] image;
 
 #+BEGIN_SRC sh
+lein uberjar
 docker build -t semira .
 docker run -p 8080:8080 -v $HOME/Music:/home/app/Music:ro semira
 #+END_SRC
