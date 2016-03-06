@@ -7,7 +7,8 @@
 ;; this software.
 
 (ns semira.frontend.components
-  (:require [semira.frontend.audio :as audio]
+  (:require [reagent.core :as reagent]
+            [semira.frontend.audio :as audio]
             [semira.frontend.sync :as sync]
             [semira.frontend.utils :as utils]))
 
@@ -32,11 +33,13 @@
         tracks)]
       [:div.loading "..."])))
 
+(defonce n-albums (reagent/atom 100))
+
 (defn albums-component []
   (let [{:keys [current-track paused]} (audio/state)]
     [:ul.albums
      (for [{:keys [album artist composer genre id tracks year selected]}
-           (sync/albums)]
+           (take @n-albums (sync/albums))]
        [:li.album
         {:key id
          :class (when (some (partial = current-track) tracks)
@@ -66,3 +69,25 @@
    [search-component]
    [albums-component]
    (when debug [audio-status-component])])
+
+(defonce do-setup
+  (.addEventListener js/window "scroll"
+                     (fn []
+                       (let [bottom (+ (-> js/window
+                                           .-scrollY)
+                                       (-> js/window
+                                           .-innerHeight))
+                             height (-> js/window
+                                        .-document
+                                        .-body
+                                        .-clientHeight)
+                             old-value @n-albums
+                             album-height (/ height old-value)
+                             new-value (-> bottom
+                                           (/ album-height)
+                                           (/ 20)
+                                           (+ 2)
+                                           int
+                                           (* 20))]
+                         (when-not (= new-value old-value)
+                           (reset! n-albums new-value))))))
