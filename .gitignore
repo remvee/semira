@@ -1,5 +1,6 @@
 *jar
 .repl
+.sass-cache/
 /.lein-deps-sum
 /.lein-failures
 /.lein-git-deps
@@ -7,8 +8,8 @@
 /.lein-repl-history
 /.nrepl-port
 /figwheel_server.log
+/generated/
 /out/
-/resources/public/semira*
 /target/
 /tmp/
 pom.xml

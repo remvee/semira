@@ -17,19 +17,21 @@
     (if tracks
       [:ol.tracks
        (map-indexed
-        (fn [pos {:keys [id length title] :as track}]
-          [:a.track
-           {:key id
-            :on-click #(if (= track current-track)
-                         (audio/play-pause)
-                         (audio/play tracks pos))
-            :class (when (= track current-track)
-                     (if paused "paused" "playing"))}
-           (when title [:span.title title])
-           [:span.length
-            (when (= track current-track)
-              [:span.played (utils/seconds->time current-time) " / "])
-            [:span.full (utils/seconds->time length)]]])
+        (fn [pos {:keys [id length] :as track}]
+          [:li.track {:key id
+                      :class (when (= track current-track)
+                               (if paused "paused" "playing"))}
+           [:a {:on-click #(if (= track current-track)
+                             (audio/play-pause)
+                             (audio/play tracks pos))}
+            [:div.details
+             (for [k [:year :genre :artist :album :title :composer]]
+               (when-let [v (get track k)]
+                 [:div {:key k, :class k} (utils/h v)]))]
+            [:div.length
+             (when (= track current-track)
+               [:span.played (utils/seconds->time current-time) " / "])
+             [:span.full (utils/seconds->time length)]]]])
         tracks)]
       [:div.loading "..."])))
 
@@ -38,19 +40,17 @@
 (defn albums-component []
   (let [{:keys [current-track paused]} (audio/state)]
     [:ul.albums
-     (for [{:keys [album artist composer genre id tracks year selected]}
+     (for [{:keys [id tracks selected] :as album}
            (take @n-albums (sync/albums))]
        [:li.album
         {:key id
          :class (when (some (partial = current-track) tracks)
                   (if paused "paused" "playing"))}
-        [:a.album-info
-         {:on-click #(sync/select-album! id (not selected))}
-         (when year [:span.year year])
-         (when genre [:span.genre (utils/h genre)])
-         (when artist [:span.artist (utils/h artist)])
-         (when composer [:span.composer (utils/h composer)])
-         (when album [:span.album album])]
+        [:a {:on-click #(sync/select-album! id (not selected))}
+         [:div.details
+          (for [k [:year :genre :artist :album :composer]]
+            (when-let [v (get album k)]
+              [:div {:key k, :class k} (utils/h v)]))]]
         (when selected
           [:div.album
            [tracks-component tracks]])])]))
@@ -59,13 +59,14 @@
   [:div.search
    [:input {:type "search"
             :placeholder ".."
+            :auto-focus true
             :on-change #(sync/set-search! (-> % .-target .-value))}]])
 
 (defn audio-status-component []
   [:div.audio-status (pr-str (audio/state))])
 
 (defn main-component [& {:keys [debug]}]
-  [:main#container
+  [:main
    [search-component]
    [albums-component]
    (when debug [audio-status-component])])

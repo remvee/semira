@@ -14,7 +14,7 @@
   :plugins [[lein-cljsbuild "1.1.2"]
             [lein-figwheel "0.5.0-6"]]
 
-  :figwheel {:css-dirs ["resources/public"]}
+  :figwheel {:css-dirs ["generated/public"]}
 
   :profiles {:dev {:dependencies [[figwheel-sidecar "0.5.0-6"]
                                   [com.cemerick/piggieback "0.2.1"]]}
@@ -22,15 +22,16 @@
                        :hooks [leiningen.cljsbuild]}}
   :main semira.core
   :uberjar-name "semira.jar"
+  :resource-paths ["resources" "generated"]
 
   :cljsbuild {:builds {:prod {:source-paths ["src"]
                               :compiler {:optimizations :advanced
-                                         :output-to "resources/public/semira.js"
-                                         :output-dir "resources/public/semira"}}
+                                         :output-to "generated/public/semira.js"
+                                         :output-dir "generated/public/semira"}}
                        :dev {:source-paths ["src"]
                              :figwheel true
-                             :compiler {:output-to "resources/public/semira-dev.js"
-                                        :output-dir "resources/public/semira-dev"}}}}
+                             :compiler {:output-to "generated/public/semira-dev.js"
+                                        :output-dir "generated/public/semira-dev"}}}}
 
   :repl-options {:init (do (use 'figwheel-sidecar.repl-api) (start-figwheel!))
                  :init-ns semira.core})
