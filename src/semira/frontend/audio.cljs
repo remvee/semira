@@ -33,7 +33,7 @@
           :else
           (str "/stream/track/" id ".mp3"))))
 
-(defn- load []
+(defn- load-and-play []
   (when-let [player (player)]
     (let [{:keys [tracks position]} @play-queue-atom]
       (when-let [current (nth tracks position nil)]
@@ -41,6 +41,7 @@
         (aset player "autoplay" true)
         (aset player "src" (track-uri current))
         (.load player)
+        (.play player)
         (swap! state-atom assoc :current-track current)))))
 
 (defn stop []
@@ -55,7 +56,7 @@
 (defn play [tracks pos]
   (stop)
   (reset! play-queue-atom {:position pos, :tracks tracks})
-  (load))
+  (load-and-play))
 
 (defn play-pause []
   (when-let [player (player)]
@@ -65,11 +66,11 @@
 
 (defn next []
   (swap! play-queue-atom update :position inc)
-  (load))
+  (load-and-play))
 
 (defn prev []
   (swap! play-queue-atom update :position dec)
-  (load))
+  (load-and-play))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
