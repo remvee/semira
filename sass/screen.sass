@@ -1,5 +1,6 @@
 @import "compass/reset"
 @import "compass"
+@import "./animation"
 
 %clearfix
   &:before,
@@ -81,3 +82,7 @@ li
 
 .paused
   background: rgba(#bbb, .2)
+
+.loading
+  text-align: center
+  @include animation('blink 1s infinite')
