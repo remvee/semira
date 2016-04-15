@@ -65,12 +65,16 @@
       (.pause player))))
 
 (defn next []
-  (swap! play-queue-atom update :position inc)
-  (load-and-play))
+  (let [{:keys [position tracks] :as play-queue} @play-queue-atom]
+    (when (< (inc position) (count tracks))
+      (swap! play-queue-atom update :position inc)
+      (load-and-play))))
 
 (defn prev []
-  (swap! play-queue-atom update :position dec)
-  (load-and-play))
+  (let [{:keys [position tracks] :as play-queue} @play-queue-atom]
+    (when (> position 0)
+      (swap! play-queue-atom update :position dec)
+      (load-and-play))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -99,18 +103,19 @@
                     :unknown)
      :seeking (aget player "seeking")
      :volume (aget player "volume")
-     :paused (aget player "paused")}))
+     :paused (and (aget player "paused")
+                  (not (aget player "ended")))}))
 
 (defn- update-state! []
-  (let [{:keys [current-track] :as state} @state-atom
-        new-state (assoc (get-player-state)
-                         :current-track current-track)]
+  (let [player-state (get-player-state)
+        {:keys [current-track] :as state} @state-atom
+        new-state (assoc player-state
+                         :current-track
+                         (when-not (:ended player-state)
+                           current-track))]
     (when-not (= new-state state)
       (reset! state-atom new-state))
     new-state))
-
-(defn state []
-  @state-atom)
 
 (defn setup! []
   (async/go-loop []
@@ -125,3 +130,6 @@
         (next)))
 
     (recur)))
+
+(defn state []
+  @state-atom)

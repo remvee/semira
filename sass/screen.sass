@@ -52,6 +52,7 @@ li
   @extend %clearfix
 
   border-top: solid #ddd 1px
+  +transition(background .5s)
 
   &.track .details
     float: left
@@ -77,8 +78,6 @@ li
 
 .playing
   background: rgba(#ff0, .2)
-  +transition(background .5s)
 
 .paused
   background: rgba(#bbb, .2)
-  +transition(background .5s)
