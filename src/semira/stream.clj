@@ -17,9 +17,6 @@
                                  "/tmp/semira"))
 (def ^:dynamic *bitrate* 96)
 
-;; ensure cache directory exists
-(utils/mkdirs cache-dir)
-
 (defn- cache-file [track type]
   (str cache-dir
        File/separator
@@ -31,6 +28,8 @@
 (def conversions ^{:private true} (atom #{}))
 
 (defn- convert [track type]
+  (utils/mkdirs cache-dir)
+
   (let [filename (cache-file track type)
         decoder (condp re-matches (:path track)
                   #".*\.flac" "flacdec" ; gst good
