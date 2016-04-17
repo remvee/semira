@@ -53,9 +53,11 @@
     (recur val)))
 
 (defn albums []
-  (let [search @search-atom]
-    (filter #(index-of (:search %) search)
-            (sort-by :index (vals @albums-atom)))))
+  (let [albums @albums-atom
+        search @search-atom]
+    (when albums
+      (filter #(index-of (:search %) search)
+              (sort-by :index (vals albums))))))
 
 (defn setup! []
   (async/go

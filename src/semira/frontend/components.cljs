@@ -38,28 +38,29 @@
 (defonce n-albums (reagent/atom 100))
 
 (defn albums-component []
-  (let [{:keys [current-track paused]} (audio/state)]
-    [:ul.albums
-     (for [{:keys [id tracks selected] :as album}
-           (take @n-albums (sync/albums))]
-       [:li.album
-        {:key id
-         :class (when (some (partial = current-track) tracks)
-                  (if paused "paused" "playing"))}
-        [:a {:on-click #(sync/select-album! id (not selected))}
-         [:div.details
-          (for [k [:year :genre :artist :album :composer]]
-            (when-let [v (get album k)]
-              [:div {:key k, :class k} (utils/h v)]))]]
-        (when selected
-          [:div.album
-           [tracks-component tracks]])])]))
+  (let [{:keys [current-track paused]} (audio/state)
+        albums (sync/albums)]
+    (if (nil? albums)
+      [:div.loading "..."]
+      [:ul.albums
+       (for [{:keys [id tracks selected] :as album} (take @n-albums albums)]
+         [:li.album
+          {:key id
+           :class (when (some (partial = current-track) tracks)
+                    (if paused "paused" "playing"))}
+          [:a {:on-click #(sync/select-album! id (not selected))}
+           [:div.details
+            (for [k [:year :genre :artist :album :composer]]
+              (when-let [v (get album k)]
+                [:div {:key k, :class k} (utils/h v)]))]]
+          (when selected
+            [:div.album
+             [tracks-component tracks]])])])))
 
 (defn search-component []
   [:div.search
    [:input {:type "search"
             :placeholder ".."
-            :auto-focus true
             :on-change #(sync/set-search! (-> % .-target .-value))}]])
 
 (defn audio-status-component []
