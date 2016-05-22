@@ -86,7 +86,10 @@
                   (recur)))
 
               ;; read remainer of file
-              (io/copy in out)))
+              (loop []
+                (when (pos? (.available in))
+                  (io/copy in out)
+                  (recur)))))
           (catch IOException _) ; pipe closed
           (finally (.close out))))))
     pipe))
