@@ -32,14 +32,14 @@
 
   (let [filename (cache-file track type)
         decoder (condp re-matches (:path track)
-                  #".*\.flac" "flacdec" ; gst good
-                  #".*\.ogg"  "oggdemux ! vorbisdec" ; gst base
-                  #".*\.mp3"  "flump3dec" ; gst fluendo-mp3
-                  #".*\.m4a"  "qtdemux ! faad") ; gst good
+                  #".*\.flac" ["flacparse" "!" "flacdec"] ; gst good
+                  #".*\.ogg"  ["oggdemux" "!" "vorbisdec"]   ; gst base
+                  #".*\.mp3"  "mad" ; gst ugly
+                  #".*\.m4a"  ["qtdemux" "!" "faad"]) ; gst good
         encoder (condp = type
-                    "audio/mpeg" ["lame" "mode=1" (str "bitrate=" *bitrate*) "!" "xingmux" "!" "id3mux"] ; gst ugly, bad
-                    "audio/ogg" ["vorbisenc" (str "bitrate=" (* *bitrate* 1000)) ")!" "oggmux"]) ; gst base
-        command (flatten ["gst-launch-0.10" "-q"
+                    "audio/mpeg" ["lamemp3enc" "target=bitrate" (str "bitrate=" *bitrate*) "!" "xingmux" "!" "id3mux"] ; gst ugly, bad
+                    "audio/ogg" ["vorbisenc" (str "bitrate=" (* *bitrate* 1000)) "!" "oggmux"]) ; gst base
+        command (flatten ["gst-launch-1.0" "-q"
                           "filesrc" "location=" (:path track) "!"
                           decoder "!"
                           "audioconvert" "!"
