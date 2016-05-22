@@ -20,18 +20,18 @@
 (defn- player []
   (.getElementById js/document "player"))
 
-(defn- track-uri [{:keys [id]}]
+(defn- track-uri [{:keys [id]} type]
+  (str "/stream/track/" id "."
+       (get {"audio/mpeg" "mp3"
+             "audio/ogg" "ogg"}
+            type)))
+
+(defn- clear-player-sources []
   (when-let [player (player)]
-    (cond (and (.-canPlayType player)
-               (not= "" (.canPlayType player  "audio/mpeg")))
-          (str "/stream/track/" id ".mp3")
-
-          (and (.-canPlayType player)
-               (not= "" (.canPlayType player  "audio/ogg")))
-          (str "/stream/track/" id ".ogg")
-
-          :else
-          (str "/stream/track/" id ".mp3"))))
+    (loop [children (.-children player)]
+      (when (> (.-length children) 0)
+        (.removeChild player (aget children 0))
+        (recur (.-children player))))))
 
 (defn- load-and-play []
   (when-let [player (player)]
@@ -39,7 +39,12 @@
       (when-let [current (nth tracks position nil)]
         (.pause player)
         (aset player "autoplay" true)
-        (aset player "src" (track-uri current))
+        (clear-player-sources)
+        (doseq [type ["audio/ogg" "audio/mpeg"]]
+          (let [source (.createElement js/document "source")]
+            (.setAttribute source "src" (track-uri current type))
+            (.setAttribute source "type" type)
+            (.appendChild player source)))
         (.load player)
         (.play player)
         (swap! state-atom assoc :current-track current)))))
@@ -49,7 +54,7 @@
     (swap! state-atom assoc :current-track nil)
     (when-not (.-ended player)
       (try
-        (aset player "src" "")
+        (clear-player-sources)
         (.load player)
         (catch js/Error e)))))
 
@@ -83,7 +88,7 @@
   (.round js/Math n))
 
 (defn- get-player-state []
-  (let [player (player)]
+  (when-let [player (player)]
     {:error (when (.-error player)
               (-> player .-error .-code))
      :current-time (round-secs (aget player "currentTime"))
