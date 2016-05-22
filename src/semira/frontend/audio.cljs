@@ -59,10 +59,11 @@
   (load-and-play))
 
 (defn play-pause []
-  (when-let [player (player)]
-    (if (.-paused player)
-      (.play player)
-      (.pause player))))
+  (when (:current-track @state-atom)
+    (when-let [player (player)]
+      (if (.-paused player)
+        (.play player)
+        (.pause player)))))
 
 (defn next []
   (let [{:keys [position tracks] :as play-queue} @play-queue-atom]
