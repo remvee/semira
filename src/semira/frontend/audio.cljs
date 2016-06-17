@@ -9,7 +9,8 @@
 (ns semira.frontend.audio
   (:refer-clojure :exclude [next])
   (:require [cljs.core.async :as async]
-            [reagent.core :as reagent])
+            [reagent.core :as reagent]
+            [semira.frontend.store :as store])
   (:require-macros [cljs.core.async.macros :as async]))
 
 (defonce state-atom (reagent/atom nil))
@@ -19,12 +20,6 @@
 
 (defn- player []
   (.getElementById js/document "player"))
-
-(defn- track-uri [{:keys [id]} type]
-  (str "/stream/track/" id "."
-       (get {"audio/mpeg" "mp3"
-             "audio/ogg" "ogg"}
-            type)))
 
 (defn- clear-player-sources []
   (when-let [player (player)]
@@ -40,13 +35,15 @@
         (.pause player)
         (aset player "autoplay" true)
         (clear-player-sources)
-        (doseq [type ["audio/ogg" "audio/mpeg"]]
-          (let [source (.createElement js/document "source")]
-            (.setAttribute source "src" (track-uri current type))
-            (.setAttribute source "type" type)
-            (.appendChild player source)))
-        (.load player)
-        (.play player)
+        (async/go
+          (doseq [type ["audio/ogg" #_ "audio/mpeg"]]
+            (let [url (async/<! (store/track-uri current type))
+                  source (.createElement js/document "source")]
+              (.setAttribute source "src" url)
+              (.setAttribute source "type" type)
+              (.appendChild player source)))
+          (.load player)
+          (.play player))
         (swap! state-atom assoc :current-track current)))))
 
 (defn stop []
