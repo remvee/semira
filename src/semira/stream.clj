@@ -10,6 +10,7 @@
   (:refer-clojure :exclude [get])
   (:require [clojure.java.io :as io]
             [clojure.string :as string]
+            [clojure.tools.logging :as log]
             [semira.utils :as utils])
   (:import [java.io File FileInputStream IOException PipedInputStream PipedOutputStream]))
 
@@ -33,7 +34,7 @@
   (let [filename (cache-file track type)
         decoder (condp re-matches (:path track)
                   #".*\.flac" ["flacparse" "!" "flacdec"] ; gst good
-                  #".*\.ogg"  ["oggdemux" "!" "vorbisdec"]   ; gst base
+                  #".*\.ogg"  ["oggdemux" "!" "vorbisdec"] ; gst base
                   #".*\.mp3"  "mad" ; gst ugly
                   #".*\.m4a"  ["qtdemux" "!" "faad"]) ; gst good
         encoder (condp = type
@@ -46,6 +47,7 @@
                           encoder "!"
                           "filesink" "location=" filename])
         process (-> (Runtime/getRuntime) (.exec (into-array command)))]
+    (log/info "Started conversion: " command)
 
     ;; register running conversion
     (swap! conversions conj filename)
