@@ -75,10 +75,8 @@
 (defonce do-setup
   (.addEventListener js/window "scroll"
                      (fn []
-                       (let [bottom (+ (-> js/window
-                                           .-scrollY)
-                                       (-> js/window
-                                           .-innerHeight))
+                       (let [bottom (+ (.-scrollY js/window)
+                                       (.-innerHeight js/window))
                              height (-> js/window
                                         .-document
                                         .-body

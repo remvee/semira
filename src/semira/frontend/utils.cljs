@@ -6,7 +6,8 @@
 ;; terms of this license.  You must not remove this notice, or any other, from
 ;; this software.
 
-(ns semira.frontend.utils)
+(ns semira.frontend.utils
+  (:require [clojure.string :as string]))
 
 (defn seconds->time
   "Write seconds as HH:MM:SS."
@@ -24,5 +25,5 @@
   "humanize value"
   [val]
   (cond (string? val) val
-        (sequential? val) (apply str (interpose ", " val))
+        (sequential? val) (string/join ", " val)
         :else ".."))

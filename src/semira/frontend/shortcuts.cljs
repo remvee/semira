@@ -22,7 +22,7 @@
 (defn setup! []
   (event/listen (.-body js/document) "keydown"
                 (fn [ev]
-                  (when (not (= "INPUT" (-> ev .-target .-tagName)))
+                  (when-not (= "INPUT" (-> ev .-target .-tagName))
                     (when-let [f (get keycode-bindings (.-keyCode ev))]
                       (f)
                       (.preventDefault ev))))))

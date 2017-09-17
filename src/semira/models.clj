@@ -77,7 +77,7 @@
 (defn normalize-album [album]
   (let [tracks (map #(merge album %) (:tracks album))
         common (filter #(apply = (map % tracks))
-                       (disj (into #{} (flatten (map keys tracks)))
+                       (disj (set (flatten (map keys tracks)))
                              :id :mtime :path :title :track :length))]
     (merge
      (select-keys (first tracks) common)
@@ -112,14 +112,14 @@
                  :dir (.getParent file)})))
 
 (defn remove-track [albums id]
-  (vec (filter #(not (empty? (:tracks %)))
-               (map (fn [album]
-                      (update-in album
-                                 [:tracks]
-                                 (fn [tracks]
-                                   (vec (remove #(= id (:id %))
-                                                tracks)))))
-                    albums))))
+  (filter #(seq (:tracks %))
+          (map (fn [album]
+                 (update-in album
+                            [:tracks]
+                            (fn [tracks]
+                              (vec (remove #(= id (:id %))
+                                           tracks)))))
+               albums)))
 
 (defn remove-file! [file]
   (swap! *albums* remove-track

@@ -20,7 +20,7 @@
     (with-open [sbin  (StringBufferInputStream. string)]
       (with-open [din (DigestInputStream. sbin digest)]
         (while (pos? (.read din))))
-      (apply str (map #(format "%02x" %) (.digest digest))))))
+      (string/join (map #(format "%02x" %) (.digest digest))))))
 
 (defn sort-by-keys
   "Sort coll of maps by value with ks defining precedence."
@@ -49,7 +49,7 @@
             :else            (format ":%02d" seconds)))))
 
 (defmulti h "HTMLize value" class)
-(defmethod h java.util.List [val] (escape-html (apply str (interpose ", " val))))
+(defmethod h java.util.List [val] (escape-html (string/join ", " val)))
 (defmethod h :default [val] (escape-html (str val)))
 
 (defn interposed-html
@@ -57,10 +57,10 @@
   [rec sep ks]
   (let [r (interpose sep
                      (map #(vec [:span {:class (name %)} (h (rec %))])
-                          (filter #(rec %) ks)))]
+                          (filter rec ks)))]
     (if (seq r) r "..")))
 
 (defn map->query-string
   "Make query string from map."
   [m]
-  (apply str (interpose "&" (map (fn [[k v]] (str (name k) "=" v)) m))))
+  (string/join "&" (map (fn [[k v]] (str (name k) "=" v)) m)))

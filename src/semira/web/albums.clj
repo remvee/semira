@@ -7,7 +7,8 @@
 ;; this software.
 
 (ns semira.web.albums
-  (:require [compojure.core :as compojure]
+  (:require [clojure.string :as string]
+            [compojure.core :as compojure]
             [hiccup.core :as hiccup]
             [semira
              [models :as models]
@@ -24,11 +25,10 @@
   (hiccup/html
    [:ol
     (map (fn [track]
-           (vec [:li (apply str (->> [:artist :album :title]
-                                     (map #(% track))
-                                     flatten
-                                     (filter identity)
-                                     (interpose " - ")))]))
+           (vec [:li (string/join " - " (->> [:artist :album :title]
+                                             (map #(% track))
+                                             flatten
+                                             (filter identity)))]))
          (:tracks album))]))
 
 (defn date-rfc822 [date]
@@ -47,10 +47,10 @@
           [:description rss-description]
           (map (fn [album]
                  (vec [:item
-                       [:title (hiccup/h (apply str (interpose " - "
-                                                               (filter identity
-                                                                       (flatten (map #(get album %)
-                                                                                     [:artist :album]))))))]
+                       [:title (hiccup/h (string/join " - "
+                                                      (filter identity
+                                                              (flatten (map #(get album %)
+                                                                            [:artist :album])))))]
                        [:link (str "/#" (:id album))]
                        [:guid (:id album)]
                        [:description (str "<![CDATA[" (tracks album) "]]>")]

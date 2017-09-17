@@ -29,7 +29,7 @@
 (defn- clear-player-sources []
   (when-let [player (player)]
     (loop [children (.-children player)]
-      (when (> (.-length children) 0)
+      (when (pos? (.-length children))
         (.removeChild player (aget children 0))
         (recur (.-children player))))))
 
@@ -78,7 +78,7 @@
 
 (defn prev []
   (let [{:keys [position tracks] :as play-queue} @play-queue-atom]
-    (when (> position 0)
+    (when (pos? position)
       (swap! play-queue-atom update :position dec)
       (load-and-play))))
 

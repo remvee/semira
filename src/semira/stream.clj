@@ -46,7 +46,7 @@
                           "audioconvert" "!"
                           encoder "!"
                           "filesink" "location=" filename])
-        process (-> (Runtime/getRuntime) (.exec (into-array command)))]
+        process (.exec (Runtime/getRuntime) (into-array command))]
     (log/info "Started conversion: " command)
 
     ;; register running conversion
@@ -56,7 +56,7 @@
     (let [guardian (fn []
                      (.waitFor process)
                      (swap! conversions disj filename)
-                     (when-not (= 0 (.exitValue process))
+                     (when-not (zero? (.exitValue process))
                        (printf "ERROR: %s: %s"
                                (pr-str command)
                                (slurp (.getErrorStream process)))))]
@@ -80,18 +80,12 @@
 
             ;; read from file till conversion no longer running
             (with-open [in (FileInputStream. filename)]
-              (loop []
-                (when (@conversions filename)
-                  (if (pos? (.available in))
-                    (io/copy in out)
-                    (Thread/sleep 100))
-                  (recur)))
-
-              ;; read remainer of file
-              (loop []
-                (when (pos? (.available in))
+              (while (@conversions filename)
+                (if (pos? (.available in))
                   (io/copy in out)
-                  (recur)))))
+                  (Thread/sleep 100)))
+              (while (pos? (.available in)) ;; read remainer of file
+                (io/copy in out))))
           (catch IOException _) ; pipe closed
           (finally (.close out))))))
     pipe))
