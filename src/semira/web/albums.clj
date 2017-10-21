@@ -10,87 +10,81 @@
   (:require [clojure.string :as string]
             [compojure.core :as compojure]
             [hiccup.core :as hiccup]
-            [semira
-             [models :as models]
-             [utils :as utils]]))
+            [semira.models :as models]
+            [semira.utils :as utils])
+  (:import java.text.SimpleDateFormat
+           java.util.Date))
 
 (def app-title "SEMIRA")
 (def rss-description "Latest additions")
+(def rss-page-size 20)
 
-(def ^:dynamic *page-size* 20)
 (def album-keys [:genre :composer :artist :album :year :id]) ; also sort order!
 (def track-keys [:id :composer :artist :album :title :length])
 
-(defn tracks [album]
-  (hiccup/html
-   [:ol
-    (map (fn [track]
-           (vec [:li (string/join " - " (->> [:artist :album :title]
-                                             (map #(% track))
-                                             flatten
-                                             (filter identity)))]))
-         (:tracks album))]))
+(defn titleize [rec & keys]
+  (->> keys (map rec) flatten (filter identity) (string/join " - ")))
+
+(defn track-list [album]
+  [:ol
+   (map #(vec [:li (hiccup/h (titleize % :artist :album :title))])
+        (:tracks album))])
 
 (defn date-rfc822 [date]
-  (.format (java.text.SimpleDateFormat. "EEE, d MMM yyyy HH:mm:ss z")
-           (java.util.Date. date)))
+  (.format (SimpleDateFormat. "EEE, d MMM yyyy HH:mm:ss z")
+           (Date. date)))
 
 (defn rss [albums]
   (str "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
        "<?xml-stylesheet type=\"text/xsl\" href=\"/rss.xsl\"?>"
-       (hiccup/html
-        {:mode :xml}
+       (hiccup/html {:mode :xml}
         [:rss
          [:channel
           [:title app-title]
-          [:link "#"]
+          [:link "/"]
           [:description rss-description]
           (map (fn [album]
                  (vec [:item
-                       [:title (hiccup/h (string/join " - "
-                                                      (filter identity
-                                                              (flatten (map #(get album %)
-                                                                            [:artist :album])))))]
+                       [:title (hiccup/h (titleize album :artist :album))]
                        [:link (str "/#" (:id album))]
                        [:guid (:id album)]
-                       [:description (str "<![CDATA[" (tracks album) "]]>")]
+                       [:description (str "<![CDATA[" (-> album track-list hiccup/html) "]]>")]
                        [:author]
                        [:pubDate (date-rfc822 (:mtime album))]]))
                albums)]])))
 
-(compojure/defroutes handler
-  (compojure/GET "/album/:id" [id]
-                 (let [album (models/album-by-id id)
-                       album (assoc (select-keys album album-keys)
-                               :tracks (map #(select-keys % track-keys) (:tracks album)))]
-                   {:status 200
-                    :headers {"Content-Type" "application/clojure; charset=utf-8"}
-                    :body (pr-str album)}))
-  (compojure/GET "/albums" [offset limit query]
-                 (let [offset (if offset
-                                (partial drop (Integer/valueOf offset))
-                                identity)
-                       limit (if limit
-                               (partial take (Integer/valueOf limit))
-                               identity)
-                       albums (->> (models/albums {:query query})
-                                   (utils/sort-by-keys album-keys)
+(compojure/defroutes bare-handler
+  (compojure/GET "/album/:id" {:keys        [albums]
+                               {:keys [id]} :params}
+                 (when-let [album (models/album-by-id id albums)]
+                   (let [album (assoc (select-keys album album-keys)
+                                      :tracks (map #(select-keys % track-keys) (:tracks album)))]
+                     {:status  200
+                      :headers {"Content-Type" "application/clojure; charset=utf-8"}
+                      :body    (pr-str album)})))
+  (compojure/GET "/albums" {:keys [albums]}
+                 (let [albums (->> albums
                                    (map #(select-keys % album-keys))
-                                   offset
-                                   limit)]
-                   {:status 200
+                                   (utils/sort-by-keys album-keys))]
+                   {:status  200
                     :headers {"Content-Type" "application/clojure; charset=utf-8"}
-                    :body (pr-str albums)}))
-  (compojure/GET "/albums.rss" []
-                 (let [albums (take *page-size*
-                                    (reverse (sort-by :mtime (models/albums))))]
-                   {:status 200
+                    :body    (pr-str albums)}))
+  (compojure/GET "/albums.rss" {:keys [albums]}
+                 (let [albums (->> albums
+                                   (sort-by :mtime)
+                                   reverse
+                                   (take rss-page-size))]
+                   {:status  200
                     :headers {"Content-Type" "text/xml"}
-                    :body (rss albums)}))
+                    :body    (rss albums)}))
   (compojure/GET "/update" []
                  (future
                    (models/scan)
                    (models/purge))
                  (Thread/sleep 2000)
-                 {:status 307
+                 {:status  307
                   :headers {"Location" "/"}}))
+
+(def handler
+  (fn [req]
+    (bare-handler (assoc req :albums (models/albums)))))

@@ -21,7 +21,7 @@
   (.getElementById js/document "player"))
 
 (defn- track-uri [{:keys [id]} type]
-  (str "/stream/track/" id "."
+  (str "/stream/" id "."
        (get {"audio/mpeg" "mp3"
              "audio/ogg" "ogg"}
             type)))

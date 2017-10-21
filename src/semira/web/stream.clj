@@ -8,20 +8,22 @@
 
 (ns semira.web.stream
   (:require [compojure.core :as compojure]
-            [semira
-             [models :as models]
-             [stream :as stream]]))
+            [semira.mime-type :refer [type-by-ext]]
+            [semira.models :as models]
+            [semira.stream :as stream]))
 
-(compojure/defroutes handler
-  (compojure/GET "/stream/:model/:id.:ext" [model id ext :as request]
-                 (let [object ((get {"track" models/track-by-id
-                                     "album" models/album-by-id}
-                                    model models/track-by-id) id)
-                       type ({"mp3" "audio/mpeg"
-                              "ogg" "audio/ogg"} ext)
-                       in (stream/get object type)
-                       len (stream/length object type)]
-                   {:status 200
-                    :headers (merge {"Content-Type" type}
-                                    (if len {"Content-Length" (str len)}))
-                    :body in})))
+(compojure/defroutes bare-handler
+  (compojure/GET "/stream/:id.:ext" {:keys            [albums open length]
+                                     {:keys [id ext]} :params}
+                 (when-let [track (models/track-by-id id albums)]
+                   (when-let [type (type-by-ext ext)]
+                     (let [in  (open track type)
+                           len (length track type)]
+                       {:status  200
+                        :headers (into {"Content-Type" type}
+                                       (when len {"Content-Length" (str len)}))
+                        :body    in})))))
+
+(def handler
+  (fn [req]
+    (bare-handler (assoc req :albums (models/albums), :open stream/open, :length stream/length))))

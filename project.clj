@@ -4,22 +4,23 @@
                  [org.clojure/clojurescript "1.8.51"]
                  [org.clojure/tools.logging "0.4.0"]
                  [org.slf4j/slf4j-log4j12 "1.7.25"]
-                 [compojure "1.5.0"]
-                 [ring/ring-jetty-adapter "1.4.0"]
+                 [compojure "1.6.0"]
+                 [ring/ring-jetty-adapter "1.6.3"]
                  [hiccup "1.0.5"]
                  [ring-partial-content "1.0.0"]
                  [org/jaudiotagger "2.0.3"]
-                 [org.clojure/core.async "0.2.374"]
-                 [cljs-http "0.1.40"]
-                 [reagent "0.5.1"]]
+                 [org.clojure/core.async "0.3.443"]
+                 [cljs-http "0.1.44"]
+                 [reagent "0.7.0"]]
 
   :plugins [[lein-cljsbuild "1.1.3"]
             [lein-figwheel "0.5.3-2"]]
 
   :figwheel {:css-dirs ["generated/public"]}
 
-  :profiles {:dev {:dependencies [[figwheel-sidecar "0.5.3-2"]
-                                  [com.cemerick/piggieback "0.2.1"]]}
+  :profiles {:dev {:dependencies [[figwheel-sidecar "0.5.14"]
+                                  [com.cemerick/piggieback "0.2.2"]
+                                  [ring/ring-mock "0.3.1"]]}
              :uberjar {:aot :all
                        :hooks [leiningen.cljsbuild]}}
   :main semira.core

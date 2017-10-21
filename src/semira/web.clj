@@ -7,17 +7,15 @@
 ;; this software.
 
 (ns semira.web
-  (:require [compojure
-             [core :refer [defroutes GET]]
-             [route :refer [resources]]]
-            [ring.middleware
-             [file-info :refer [wrap-file-info]]
-             [params :refer [wrap-params]]
-             [partial-content :refer [wrap-partial-content]]]
+  (:require [compojure.core :refer [defroutes GET]]
+            [compojure.route :refer [resources]]
+            [ring.middleware.content-type :refer [wrap-content-type]]
+            [ring.middleware.not-modified :refer [wrap-not-modified]]
+            [ring.middleware.params :refer [wrap-params]]
+            [ring.middleware.partial-content :refer [wrap-partial-content]]
             [ring.util.response :refer [content-type resource-response]]
-            [semira.web
-             [albums :as web-albums]
-             [stream :as web-stream]]))
+            [semira.web.albums :as web-albums]
+            [semira.web.stream :as web-stream]))
 
 (defroutes handler
   web-albums/handler
@@ -29,5 +27,6 @@
 
 (def app (-> handler
              wrap-params
-             wrap-file-info
+             wrap-not-modified
+             wrap-content-type
              wrap-partial-content))

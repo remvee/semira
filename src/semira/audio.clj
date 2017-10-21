@@ -7,6 +7,7 @@
 ;; this software.
 
 (ns semira.audio
+  (:require [clojure.string :as string])
   (:import java.io.StringBufferInputStream
            java.util.logging.LogManager
            org.jaudiotagger.audio.AudioFileIO
@@ -56,37 +57,34 @@
              :album
              :composer
              :conductor
-             :disc_no
-             :disc_total
+             :disc-no
              :genre
              :producer
              :remixer
              :title
              :track
-             :track_total
              :year])
 
 (defn to-i [vals]
-  (if (first vals)
-    (if-let [val (re-find #"\d+" (first vals))]
-      (Integer/valueOf val))))
+  (when-let [val (and (seq vals) (re-find #"\d+" (first vals)))]
+    (Integer/valueOf val)))
 
 (defn to-year [vals]
-  (first (filter identity (map #(re-find #"\d{4}" %) vals))))
+  (->> vals
+       (map #(re-find #"\d{4}" %))
+       (filter identity)
+       first))
 
 (defn translate-genres [vals]
-  (and (first vals)
-       (vec (map (fn [val]
-                   (if-let [[_ n] (re-matches #"\((\d+)\).*" val)]
-                     (nth id3v1-genres (Integer/valueOf n))
-                     val))
-                 vals))))
+  (mapv (fn [val]
+          (if-let [[_ n] (re-matches #"\((\d+)\).*" val)]
+            (nth id3v1-genres (Integer/valueOf n))
+            val))
+        vals))
 
 (def field-fns ^{:private true}
   {:track       to-i
-   :track_total to-i
-   :disc_no     to-i
-   :disc_total  to-i
+   :disc-no     to-i
    :album       first
    :title       first
    :year        to-year
@@ -94,37 +92,54 @@
    :genre       translate-genres})
 
 (defmulti field-str class)
-(defmethod field-str TagTextField [field] (.getContent field))
-(defmethod field-str TagField [field] (.toString field))
+
+(defmethod field-str TagTextField
+  [field]
+  (.getContent field))
+
+(defmethod field-str TagField
+  [field]
+  (.toString field))
+
+(defn field-key [k]
+  (FieldKey/valueOf (string/replace (.toUpperCase (name k)) "-" "_")))
 
 (defn base-tag-fields [tag]
-  (into {}
-        (map (fn [[k v]] [k ((get field-fns k identity) v)])
-             (filter #(seq (last %))
-                     (map (fn [k]
-                            (let [fs (.getFields tag
-                                                 (FieldKey/valueOf (.toUpperCase (name k))))]
-                              [k (filterv #(not= "" %) (map field-str fs))]))
-                          fields)))))
+  (->> fields
+       (map (fn [k]
+              (let [fs (.getFields tag (field-key k))]
+                [k (->> fs
+                        (map field-str)
+                        (mapcat #(string/split % #"\000"))
+                        (filterv (complement string/blank?)))])))
+       (filter #(seq (last %)))
+       (map (fn [[k v]]
+              (let [f (get field-fns k identity)]
+                [k (f v)])))
+       (into {})))
 
 (defmulti tag-fields class)
-(defmethod tag-fields Tag [tag] (base-tag-fields tag))
-(defmethod tag-fields Mp4Tag [tag]
+
+(defmethod tag-fields Tag
+  [tag]
+  (base-tag-fields tag))
+
+(defmethod tag-fields Mp4Tag
+  [tag]
   (let [track (.getFirst tag Mp4FieldKey/TRACK)]
     (merge-with #(or %1 %2)
                 (base-tag-fields tag)
-                {:genre (vec (map field-str (.get tag Mp4FieldKey/GENRE_CUSTOM)))}
-                (let [[_ track _ track-total] (re-matches #"(\d+)(/(\d+))?" (str track))]
-                  {:track (and track (Integer/parseInt track))
-                   :track_total (and track-total (Integer/parseInt track-total))}))))
+                {:genre (mapv field-str (.get tag Mp4FieldKey/GENRE_CUSTOM))}
+                (let [[_ track] (re-matches #"(\d+)(/\d+)?" (str track))]
+                  {:track       (when track (Integer/parseInt track))}))))
 
 (defn info
   "Pull meta data from audio file."
   [file]
-  (let [audio (AudioFileIO/read file)
-        tag (.getTag audio)
+  (let [audio  (AudioFileIO/read file)
+        tag    (.getTag audio)
         header (.getAudioHeader audio)]
-    (if (and tag header)
-      (into {:length (.getTrackLength header)
+    (when (and tag header)
+      (into {:length   (.getTrackLength header)
              :encoding (.getEncodingType header)}
             (tag-fields tag)))))

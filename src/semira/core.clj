@@ -13,18 +13,18 @@
 
 (defonce server-atom (atom nil))
 
-(defn stop []
+(defn stop! []
   (when-let [server @server-atom]
     (.stop server)
     (reset! server-atom nil)))
 
-(defn start []
-  (stop)
+(defn start! []
+  (stop!)
   (let [host (get (System/getenv) "HOST")
         port (Integer/parseInt (get (System/getenv) "PORT" "8080"))]
     (reset! server-atom
             (run-jetty #'web/app
                        {:host host, :port port, :join? false}))))
 
-(defn -main [& [port]]
-  (start))
+(defn -main [& _]
+  (start!))

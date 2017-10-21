@@ -7,15 +7,16 @@
 ;; this software.
 
 (ns semira.stream
-  (:refer-clojure :exclude [get])
-  (:require [clojure.java.io :as io]
+  (:require [clojure.core.async :as async]
+            [clojure.java.io :as io]
             [clojure.string :as string]
             [clojure.tools.logging :as log]
+            [semira.mime-type :refer [type-by-file-name]]
             [semira.utils :as utils])
-  (:import [java.io File FileInputStream IOException PipedInputStream PipedOutputStream]))
+  (:import [java.io File FileInputStream PipedInputStream PipedOutputStream]))
 
-(def cache-dir (clojure.core/get (System/getenv) "SEMIRA_CACHE_DIR"
-                                 "/tmp/semira"))
+(def cache-dir (get (System/getenv) "SEMIRA_CACHE_DIR"
+                    "/tmp/semira"))
 (def ^:dynamic *bitrate* 96)
 
 (defn- cache-file [track type]
@@ -28,114 +29,89 @@
 
 (def conversions ^{:private true} (atom #{}))
 
-(defn- convert [track type]
+(defn convert-command [in-file out-file target-type]
+  (let [decoder ({"audio/flac" ["flacparse" "!" "flacdec"]
+                  "audio/ogg"  ["oggdemux" "!" "vorbisdec"]
+                  "audio/mpeg" ["mpegaudioparse" "!" "mpg123audiodec"]
+                  "audio/mp4"  ["qtdemux" "!" "faad"]}
+                 (type-by-file-name in-file))
+        encoder ({"audio/mpeg" ["lamemp3enc"
+                                "target=bitrate" (str "bitrate=" *bitrate*)
+                                "!" "xingmux" "!" "id3mux"]
+                  "audio/ogg"  ["vorbisenc"
+                                (str "bitrate=" (* *bitrate* 1000))
+                                "!" "oggmux"]}
+                 target-type)]
+    (flatten ["gst-launch-1.0" "-q"
+              "filesrc" "location=" in-file "!"
+              decoder "!"
+              "audioconvert" "!"
+              encoder "!"
+              "filesink" "location=" out-file])))
+
+(defn- convert [track target-type]
   (utils/mkdirs cache-dir)
 
-  (let [filename (cache-file track type)
-        decoder (condp re-matches (:path track)
-                  #".*\.flac" ["flacparse" "!" "flacdec"] ; gst good
-                  #".*\.ogg"  ["oggdemux" "!" "vorbisdec"] ; gst base
-                  #".*\.mp3"  "mad" ; gst ugly
-                  #".*\.m4a"  ["qtdemux" "!" "faad"]) ; gst good
-        encoder (condp = type
-                    "audio/mpeg" ["lamemp3enc" "target=bitrate" (str "bitrate=" *bitrate*) "!" "xingmux" "!" "id3mux"] ; gst ugly, bad
-                    "audio/ogg" ["vorbisenc" (str "bitrate=" (* *bitrate* 1000)) "!" "oggmux"]) ; gst base
-        command (flatten ["gst-launch-1.0" "-q"
-                          "filesrc" "location=" (:path track) "!"
-                          decoder "!"
-                          "audioconvert" "!"
-                          encoder "!"
-                          "filesink" "location=" filename])
-        process (.exec (Runtime/getRuntime) (into-array command))]
+  (let [filename (cache-file track target-type)
+        command  (convert-command (:path track) filename target-type)
+        process  (.exec (Runtime/getRuntime) (into-array command))]
     (log/info "Started conversion: " command)
 
     ;; register running conversion
     (swap! conversions conj filename)
 
     ;; wait for conversion to finish and deregister it
-    (let [guardian (fn []
-                     (.waitFor process)
-                     (swap! conversions disj filename)
-                     (when-not (zero? (.exitValue process))
-                       (printf "ERROR: %s: %s"
-                               (pr-str command)
-                               (slurp (.getErrorStream process)))))]
-      (.start (Thread. guardian)))))
+    (async/thread
+      (.waitFor process)
+      (swap! conversions disj filename)
+      (let [exit-value (.exitValue process)]
+        (log/debug "Conversion finished: " command)
+        (when-not (zero? exit-value)
+          (log/error "conversion exited with non zero exit value" exit-value
+                     "command:" (pr-str command)
+                     "stdout:" (pr-str (slurp (.getInputStream process)))
+                     "stderr:" (pr-str (slurp (.getErrorStream process)))))))))
 
 (defn- live-input [track type]
   (let [filename (cache-file track type)
-        pipe (PipedInputStream.)
-        out (PipedOutputStream. pipe)]
-    (.start
-     (Thread.
-      (fn []
-        (try
-          (do
-            ;; wait for file to appear
-            (loop [n 100]
-              (when (and (pos? n)
-                         (not (-> filename File. .canRead)))
-                (Thread/sleep 100)
-                (recur (dec n))))
+        pipe     (PipedInputStream.)]
+    (async/thread
+      (with-open [out (PipedOutputStream. pipe)]
+        ;; wait for file to appear
+        (loop [n 100]
+          (when (and (pos? n)
+                     (not (-> filename File. .canRead)))
+            (Thread/sleep 100)
+            (recur (dec n))))
 
-            ;; read from file till conversion no longer running
-            (with-open [in (FileInputStream. filename)]
-              (while (@conversions filename)
-                (if (pos? (.available in))
-                  (io/copy in out)
-                  (Thread/sleep 100)))
-              (while (pos? (.available in)) ;; read remainer of file
-                (io/copy in out))))
-          (catch IOException _) ; pipe closed
-          (finally (.close out))))))
+        ;; read till conversion no longer running
+        (with-open [in (FileInputStream. filename)]
+          (while (@conversions filename)
+            (if (pos? (.available in))
+              (io/copy in out)
+              (Thread/sleep 100)))
+          ;; read remainer of file
+          (while (pos? (.available in))
+            (io/copy in out)))))
     pipe))
 
-(defn- object-type [object & rest]
-  (cond (:tracks object) :album
-        (:path object)   :track))
-
-(defmulti get
-  "Return an input stream of given type for the given object."
-  object-type)
-
-(defmethod get :track [track type]
-  (locking get
+(defn open [track type]
+  (locking open
     (let [filename (cache-file track type)]
       (cond
-       (@conversions filename)
-       (live-input track type)
+        (@conversions filename)
+        (live-input track type)
 
-       (-> filename File. .canRead)
-       (FileInputStream. filename)
+        (-> filename File. .canRead)
+        (FileInputStream. filename)
 
-       :else
-       (do
-         (convert track type)
-         (live-input track type))))))
+        :else
+        (do
+          (convert track type)
+          (live-input track type))))))
 
-(defmethod get :album [album type]
-  (let [pipe (PipedInputStream.)
-        out (PipedOutputStream. pipe)]
-    (.start
-     (Thread.
-      (fn []
-        (try
-          (doseq [track (:tracks album)]
-            (with-open [in (get track type)]
-              (io/copy in out)))
-          (catch IOException _) ; pipe closed
-          (finally (.close out))))))
-    pipe))
-
-(defmulti length
-  "Return the length of the stream when already known, otherwise nil."
-  object-type)
-
-(defmethod length :track [track type]
+(defn length [track type]
   (let [filename (cache-file track type)
-        file (File. filename)]
-    (and (not (@conversions filename)) (.canRead file) (.length file))))
-
-(defmethod length :album [album type]
-  (reduce #(when %1 (let [len (length %2 type)] (when len (+ %1 len))))
-          0 (:tracks album)))
+        file     (File. filename)]
+    (when (and (not (@conversions filename)) (.canRead file))
+      (.length file))))
