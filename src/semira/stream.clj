@@ -13,7 +13,7 @@
             [clojure.tools.logging :as log]
             [semira.mime-type :refer [type-by-file-name]]
             [semira.utils :as utils])
-  (:import [java.io File FileInputStream PipedInputStream PipedOutputStream]))
+  (:import [java.io File FileInputStream IOException PipedInputStream PipedOutputStream]))
 
 (def cache-dir (get (System/getenv) "SEMIRA_CACHE_DIR"
                     "/tmp/semira"))
@@ -85,14 +85,18 @@
             (recur (dec n))))
 
         ;; read till conversion no longer running
-        (with-open [in (FileInputStream. filename)]
-          (while (@conversions filename)
-            (if (pos? (.available in))
-              (io/copy in out)
-              (Thread/sleep 100)))
-          ;; read remainer of file
-          (while (pos? (.available in))
-            (io/copy in out)))))
+        (try
+          (with-open [in (FileInputStream. filename)]
+            (while (@conversions filename)
+              (if (pos? (.available in))
+                (io/copy in out)
+                (Thread/sleep 100)))
+            ;; read remainer of file
+            (while (pos? (.available in))
+              (io/copy in out)))
+          (catch IOException _
+            ;; ignore "Pipe closed" when stream is closed by browser
+            nil))))
     pipe))
 
 (defn open [track type]
