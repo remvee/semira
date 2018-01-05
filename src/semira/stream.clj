@@ -72,16 +72,19 @@
                      "stdout:" (pr-str (slurp (.getInputStream process)))
                      "stderr:" (pr-str (slurp (.getErrorStream process)))))))))
 
+(def ^:const wait-for-input-ms 100)
+
 (defn- live-input [track type]
   (let [filename (cache-file track type)
-        pipe     (PipedInputStream.)]
+        in       (PipedInputStream.)
+        out      (PipedOutputStream. in)]
     (async/thread
-      (with-open [out (PipedOutputStream. pipe)]
+      (try
         ;; wait for file to appear
         (loop [n 100]
           (when (and (pos? n)
                      (not (-> filename File. .canRead)))
-            (Thread/sleep 100)
+            (Thread/sleep wait-for-input-ms)
             (recur (dec n))))
 
         ;; read till conversion no longer running
@@ -90,14 +93,22 @@
             (while (@conversions filename)
               (if (pos? (.available in))
                 (io/copy in out)
-                (Thread/sleep 100)))
+                (Thread/sleep wait-for-input-ms)))
+
             ;; read remainer of file
-            (while (pos? (.available in))
-              (io/copy in out)))
+            (loop []
+              (Thread/sleep wait-for-input-ms)
+              (when (pos? (.available in))
+                (io/copy in out)
+                (recur))))
+
+          ;; ignore "Pipe closed" when stream is closed by browser
           (catch IOException _
-            ;; ignore "Pipe closed" when stream is closed by browser
-            nil))))
-    pipe))
+            nil))
+        (finally
+          (try (.close in) (catch IOException _ nil))
+          (try (.close out) (catch IOException _ nil)))))
+    in))
 
 (defn open [track type]
   (locking open
