@@ -57,11 +57,19 @@
             [:div.album
              [tracks-component tracks]])])])))
 
-(defn search-component []
-  [:div.search
-   [:input {:type "search"
-            :placeholder ".."
-            :on-change #(sync/set-search! (-> % .-target .-value))}]])
+(let [search-atom (reagent/atom (utils/get-location-hash))]
+  (add-watch search-atom :history-state
+             (fn [_ _ _ v]
+               (utils/set-location-hash v)))
+
+  (defn search-component []
+    [:div.search
+     [:input {:type        "search"
+              :value       @search-atom
+              :placeholder ".."
+              :on-change   #(let [v (-> % .-target .-value)]
+                              (reset! search-atom v)
+                              (sync/set-search! v))}]]))
 
 (defn audio-status-component []
   [:div.audio-status (pr-str (audio/state))])

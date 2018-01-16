@@ -11,7 +11,8 @@
             [cljs.core.async :as async]
             [cljs.reader :as reader]
             [clojure.string :refer [index-of lower-case]]
-            [reagent.core :as reagent])
+            [reagent.core :as reagent]
+            [semira.frontend.utils :as utils])
   (:require-macros [cljs.core.async.macros :as async]))
 
 (defonce albums-atom (reagent/atom nil))
@@ -39,17 +40,25 @@
 
 (defonce search-chan (async/chan 1))
 
+(defn normalize-search-text [text]
+  (lower-case text))
+
 (defn set-search! [text]
   (async/go
-    (async/put! search-chan (lower-case text))))
+    (async/put! search-chan (normalize-search-text text))))
 
-(defonce search-atom (reagent/atom ""))
+(defonce search-atom (reagent/atom (normalize-search-text (utils/get-location-hash))))
 
 (defonce do-setup
-  (async/go-loop [val ""]
+  (async/go-loop [val nil]
     (async/alt!
-      (async/timeout 250) (reset! search-atom val)
-      search-chan ([text] (recur text)))
+      (async/timeout 250)
+      (when val
+        (reset! search-atom val)
+        (recur nil))
+
+      search-chan
+      ([text] (recur text)))
     (recur val)))
 
 (defn albums []

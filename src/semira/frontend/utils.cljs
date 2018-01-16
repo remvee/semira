@@ -27,3 +27,18 @@
   (cond (string? val) val
         (sequential? val) (string/join ", " val)
         :else ".."))
+
+(defn decode-uri-component [v]
+  (.decodeURIComponent js/window v))
+
+(defn encode-uri-component [v]
+  (.encodeURIComponent js/window v))
+
+(defn get-location-hash []
+  (-> js/document .-location .-hash
+      (subs 1)
+      decode-uri-component))
+
+(defn set-location-hash [v]
+  (set! (-> js/document .-location .-hash)
+        (str "#" (encode-uri-component v))))
