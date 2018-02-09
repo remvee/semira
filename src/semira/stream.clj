@@ -106,7 +106,6 @@
           (catch IOException _
             nil))
         (finally
-          (try (.close in) (catch IOException _ nil))
           (try (.close out) (catch IOException _ nil)))))
     in))
 
