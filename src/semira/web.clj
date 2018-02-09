@@ -7,8 +7,9 @@
 ;; this software.
 
 (ns semira.web
-  (:require [compojure.core :refer [defroutes GET]]
-            [compojure.route :refer [resources]]
+  (:require [clojure.java.io :as io]
+            [compojure.core :refer [defroutes GET]]
+            [compojure.route :refer [not-found resources]]
             [ring.middleware.content-type :refer [wrap-content-type]]
             [ring.middleware.not-modified :refer [wrap-not-modified]]
             [ring.middleware.params :refer [wrap-params]]
@@ -23,7 +24,8 @@
   (GET "/" []
        (some-> (resource-response "public/index.html")
                (content-type "text/html")))
-  (resources "/" {:root "public"}))
+  (resources "/" {:root "public"})
+  (not-found (io/resource "public/not-found.html")))
 
 (def app (-> handler
              wrap-params
