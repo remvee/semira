@@ -7,20 +7,27 @@
 ;; this software.
 
 (ns semira.frontend.components
-  (:require [reagent.core :as reagent]
+  (:require [clojure.string :as string]
+            [reagent.core :as reagent]
             [semira.frontend.audio :as audio]
             [semira.frontend.sync :as sync]
             [semira.frontend.utils :as utils]))
 
 (defn tracks-component [tracks]
-  (let [{:keys [current-track current-time paused]} (audio/state)]
+  (let [{:keys [current-track
+                current-time
+                paused
+                network-state]} (audio/state)]
     (if tracks
       [:ol.tracks
        (map-indexed
         (fn [pos {:keys [id length] :as track}]
           [:li.track {:key id
                       :class (when (= track current-track)
-                               (if paused "paused" "playing"))}
+                               (->> [(if paused "paused" "playing")
+                                     (when (= network-state :no-source) "loading")]
+                                    (filter identity)
+                                    (string/join " ")))}
            [:a {:on-click #(if (= track current-track)
                              (audio/play-pause)
                              (audio/play tracks pos))}
@@ -33,7 +40,7 @@
                [:span.played (utils/seconds->time current-time) " / "])
              [:span.full (utils/seconds->time length)]]]])
         tracks)]
-      [:div.loading "..."])))
+      [:div.tracks.loading "..."])))
 
 (defonce n-albums (reagent/atom 100))
 
@@ -41,7 +48,7 @@
   (let [{:keys [current-track paused]} (audio/state)
         albums (sync/albums)]
     (if (nil? albums)
-      [:div.loading "..."]
+      [:div.albums.loading "..."]
       [:ul.albums
        (for [{:keys [id tracks selected] :as album} (take @n-albums albums)]
          [:li.album

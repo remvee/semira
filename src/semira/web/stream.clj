@@ -12,6 +12,8 @@
             [semira.models :as models]
             [semira.stream :as stream]))
 
+(def retry-after-seconds 5)
+
 (compojure/defroutes bare-handler
   (compojure/GET "/stream/:id.:ext" {:keys            [albums open length]
                                      {:keys [id ext]} :params}
@@ -19,10 +21,14 @@
                    (when-let [type (type-by-ext ext)]
                      (let [in  (open track type)
                            len (length track type)]
-                       {:status  200
-                        :headers (into {"Content-Type" type}
-                                       (when len {"Content-Length" (str len)}))
-                        :body    in})))))
+                       (if (= ::stream/busy in)
+                         {:status  503 ;; Service Unavailable
+                          :headers {"Retry-After" (str retry-after-seconds)}
+                          :body    "busy"}
+                         {:status  200
+                          :headers (into {"Content-Type" type}
+                                         (when len {"Content-Length" (str len)}))
+                          :body    in}))))))
 
 (def handler
   (fn [req]

@@ -29,6 +29,9 @@
 
 (def conversions ^{:private true} (atom #{}))
 
+(defn max-concurrent-conversions []
+  (.availableProcessors (Runtime/getRuntime)))
+
 (defn convert-command [in-file out-file target-type]
   (let [decoder ({"audio/flac" ["flacparse" "!" "flacdec"]
                   "audio/ogg"  ["oggdemux" "!" "vorbisdec"]
@@ -120,9 +123,14 @@
         (FileInputStream. filename)
 
         :else
-        (do
-          (convert track type)
-          (live-input track type))))))
+        (let [max (max-concurrent-conversions)]
+          (if (> (count @conversions) max)
+            (do
+              (log/info "Exceeded max of" max "concurrent conversions..")
+              ::busy)
+            (do
+              (convert track type)
+              (live-input track type))))))))
 
 (defn length [track type]
   (let [filename (cache-file track type)

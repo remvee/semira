@@ -17,7 +17,7 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn- player []
+(defn- get-player []
   (.getElementById js/document "player"))
 
 (defn- track-uri [{:keys [id]} type]
@@ -27,14 +27,14 @@
             type)))
 
 (defn- clear-player-sources []
-  (when-let [player (player)]
+  (when-let [player (get-player)]
     (loop [children (.-children player)]
       (when (pos? (.-length children))
         (.removeChild player (aget children 0))
         (recur (.-children player))))))
 
 (defn- load-and-play []
-  (when-let [player (player)]
+  (when-let [player (get-player)]
     (let [{:keys [tracks position]} @play-queue-atom]
       (when-let [current (nth tracks position nil)]
         (.pause player)
@@ -50,7 +50,7 @@
         (swap! state-atom assoc :current-track current)))))
 
 (defn stop []
-  (when-let [player (player)]
+  (when-let [player (get-player)]
     (swap! state-atom assoc :current-track nil)
     (when-not (.-ended player)
       (try
@@ -65,7 +65,7 @@
 
 (defn play-pause []
   (when (:current-track @state-atom)
-    (when-let [player (player)]
+    (when-let [player (get-player)]
       (if (.-paused player)
         (.play player)
         (.pause player)))))
@@ -88,7 +88,7 @@
   (.round js/Math n))
 
 (defn- get-player-state []
-  (when-let [player (player)]
+  (when-let [player (get-player)]
     {:error (when (.-error player)
               (-> player .-error .-code))
      :current-time (round-secs (aget player "currentTime"))
@@ -126,14 +126,26 @@
 (defn setup! []
   (async/go-loop []
     (async/<! (async/timeout 50))
-
     (update-state!)
 
-    ;; Advance to next track when player get status ended.  Listening for
-    ;; the "ended" event isn't very reliable unfortunately.
-    (when-let [player (player)]
-      (when (.-ended player)
-        (next)))
+    (when-let [{:keys [ended
+                       network-state]} (get-player-state)]
+      ;; Advance to next track when player get status ended.
+      ;; Listening for the "ended" event isn't very reliable
+      ;; unfortunately.
+      (when ended
+        (next))
+
+      (when (= network-state :no-source)
+        ;; Most likely a 503 Service Unavailable, let's retry after a
+        ;; couple of seconds.
+        (async/<! (async/timeout 2000))
+        (loop [tries 0]
+          (when (and (= (:network-state (get-player-state)) :no-source)
+                     (< tries 5))
+            (load-and-play)
+            (async/<! (async/timeout 2000))
+            (recur (inc tries))))))
 
     (recur)))
 
