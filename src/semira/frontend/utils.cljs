@@ -42,3 +42,32 @@
 (defn set-location-hash [v]
   (set! (-> js/document .-location .-hash)
         (str "#" (encode-uri-component v))))
+
+(defn rect-in? [a b]
+  (and (<= (:top a) (:top b) (:bottom b) (:bottom a))
+       (<= (:left a) (:left b) (:right b) (:right a))))
+
+(defn rect [el]
+  (let [rect (.getBoundingClientRect el)]
+    {:top    (.-top rect)
+     :left   (.-left rect)
+     :bottom (.-bottom rect)
+     :right  (.-right rect)}))
+
+(defn viewport-rect []
+  (let [el (.-documentElement js/document)]
+    {:top    (.-clientTop el)
+     :left   (.-clientLeft el)
+     :bottom (+ (.-clientTop el) (.-clientHeight el))
+     :right  (+ (.-clientLeft el) (.-clientWidth el))}))
+
+(defn fully-visible? [el]
+  (rect-in? (viewport-rect) (rect el)))
+
+(defn scroll-into-view [el]
+  (.scrollIntoView el #js {:behavior "smooth"
+                           :block    "start"}))
+
+(defn scroll-into-view-if-needed [el]
+  (when-not (fully-visible? el)
+    (scroll-into-view el)))

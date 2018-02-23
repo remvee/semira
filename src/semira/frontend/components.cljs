@@ -44,25 +44,37 @@
 
 (defonce n-albums (reagent/atom 100))
 
+(defn album-component [{:keys [id tracks selected] :as album}]
+  (let [{:keys [current-track paused]} (audio/state)]
+    [:li.album
+     {:key   id
+      :class (when (some (partial = current-track) tracks)
+               (if paused "paused" "playing"))}
+     [:a {:on-click #(sync/select-album! id (not selected))}
+      [:div.details
+       (for [k [:year :genre :artist :album :composer]]
+         (when-let [v (get album k)]
+           [:div {:key k, :class k} (utils/h v)]))]]
+     (when selected
+       [:div.album
+        [tracks-component tracks]])]))
+
+(def album-component-scroll-into-view
+  (with-meta album-component
+    {:component-did-update (fn [this [_ prev-props]]
+                             (when (or (and (:selected (reagent/props this))
+                                            (not (:selected prev-props)))
+                                       (and (:tracks (reagent/props this))
+                                            (not (:tracks prev-props))))
+                               (utils/scroll-into-view-if-needed (reagent/dom-node this))))}))
+
 (defn albums-component []
-  (let [{:keys [current-track paused]} (audio/state)
-        albums (sync/albums)]
+  (let [albums (sync/albums)]
     (if (nil? albums)
       [:div.albums.loading "..."]
       [:ul.albums
-       (for [{:keys [id tracks selected] :as album} (take @n-albums albums)]
-         [:li.album
-          {:key id
-           :class (when (some (partial = current-track) tracks)
-                    (if paused "paused" "playing"))}
-          [:a {:on-click #(sync/select-album! id (not selected))}
-           [:div.details
-            (for [k [:year :genre :artist :album :composer]]
-              (when-let [v (get album k)]
-                [:div {:key k, :class k} (utils/h v)]))]]
-          (when selected
-            [:div.album
-             [tracks-component tracks]])])])))
+       (for [album (take @n-albums albums)]
+         [album-component-scroll-into-view (assoc album :key (:id album))])])))
 
 (let [search-atom (reagent/atom (utils/get-location-hash))]
   (add-watch search-atom :history-state
