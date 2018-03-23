@@ -17,7 +17,8 @@
   (let [{:keys [current-track
                 current-time
                 paused
-                network-state]} (audio/state)]
+                network-state
+                ready-state]} (audio/state)]
     (if tracks
       [:ol.tracks
        (map-indexed
@@ -25,7 +26,9 @@
           [:li.track {:key id
                       :class (when (= track current-track)
                                (->> [(if paused "paused" "playing")
-                                     (when (= network-state :no-source) "loading")]
+                                     (when (or (= network-state :no-source)
+                                               (= ready-state :nothing))
+                                       "loading")]
                                     (filter identity)
                                     (string/join " ")))}
            [:a {:on-click #(if (= track current-track)
