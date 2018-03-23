@@ -10,7 +10,7 @@
   (:require [cljs-http.client :as http]
             [cljs.core.async :as async]
             [cljs.reader :as reader]
-            [clojure.string :refer [index-of lower-case]]
+            [clojure.string :as string]
             [reagent.core :as reagent]
             [semira.frontend.utils :as utils])
   (:require-macros [cljs.core.async.macros :as async]))
@@ -40,14 +40,16 @@
 
 (defonce search-chan (async/chan 1))
 
-(defn normalize-search-text [text]
-  (lower-case text))
+(defn normalize-search-terms [text]
+  (-> text
+      string/lower-case
+      (string/split #"\s+")))
 
 (defn set-search! [text]
   (async/go
-    (async/put! search-chan (normalize-search-text text))))
+    (async/put! search-chan (normalize-search-terms text))))
 
-(defonce search-atom (reagent/atom (normalize-search-text (utils/get-location-hash))))
+(defonce search-atom (reagent/atom (normalize-search-terms (utils/get-location-hash))))
 
 (defonce do-setup
   (async/go-loop [val nil]
@@ -61,11 +63,13 @@
       ([text] (recur text)))
     (recur val)))
 
+(defn album-match? [terms {:keys [search]}]
+  (not (some #(= -1 (.indexOf search %)) terms)))
+
 (defn albums []
-  (let [albums @albums-atom
-        search @search-atom]
+  (let [albums @albums-atom]
     (when albums
-      (filter #(index-of (:search %) search)
+      (filter (partial album-match? @search-atom)
               (sort-by :index (vals albums))))))
 
 (defn setup! []
@@ -80,5 +84,5 @@
                                 [(:id v)
                                  (assoc v
                                         :index i
-                                        :search (lower-case (str v)))]))
+                                        :search (string/lower-case (str v)))]))
                  (into {})))))
