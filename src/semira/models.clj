@@ -33,10 +33,10 @@
 (defn albums []
   @album-store)
 
-(defn album-by-id [id albums]
+(defn album-by-id [albums id]
   (->> albums (filter #(= id (:id %))) first))
 
-(defn track-by-id [id albums]
+(defn track-by-id [albums id]
   (->> albums (mapcat :tracks) (filter #(= id (:id %))) first))
 
 (defn- search-index-album [album]
@@ -81,25 +81,32 @@
     (conj (filterv #(not= album-id (:id %)) albums)
           album)))
 
+(defn- need-update-track? [albums id current-mtime]
+  (let [{:keys [mtime]} (track-by-id albums id)]
+    (or (nil? mtime)
+        (< mtime current-mtime))))
+
 (defn- update-file! [file]
   (let [album-id (utils/sha1 (.getParent file))
-        track    (merge (audio/info file)
-                        {:id    (utils/sha1 (.getPath file))
-                         :path  (.getPath file)
-                         :mtime (.lastModified file)})]
-    (swap! album-store
-           (fn [albums]
-             (update-track albums album-id track)))))
+        id       (utils/sha1 (.getPath file))
+        mtime    (.lastModified file)
+        path     (.getPath file)]
+    (when (need-update-track? @album-store id mtime)
+      (log/info "updating:" file)
+      (swap! album-store update-track album-id (merge (audio/info file)
+                                                      {:id    id
+                                                       :path  path
+                                                       :mtime mtime})))))
 
 (def ^:private audio-file-re #".+\.(mp3|m4a|flac|ogg)")
 
 (defn scan []
+  (log/info "started scanning")
   (let [before (System/currentTimeMillis)]
     (doseq [file (->> (File. music-dir)
                       file-seq
                       (filter #(and (.isFile %)
                                     (re-matches audio-file-re (.getName %)))))]
-      (log/info "updating:" file)
       (update-file! file))
     (log/info "scanned in" (- (System/currentTimeMillis) before) "ms"))
   (send-off-backup))

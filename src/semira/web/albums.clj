@@ -56,7 +56,7 @@
 (compojure/defroutes bare-handler
   (compojure/GET "/album/:id" {:keys        [albums]
                                {:keys [id]} :params}
-                 (when-let [album (models/album-by-id id albums)]
+                 (when-let [album (models/album-by-id albums id)]
                    (let [album (assoc (select-keys album album-keys)
                                       :tracks (map #(select-keys % track-keys) (:tracks album)))]
                      {:status  200

@@ -17,7 +17,7 @@
 (compojure/defroutes bare-handler
   (compojure/GET "/stream/:id.:ext" {:keys            [albums open length]
                                      {:keys [id ext]} :params}
-                 (when-let [track (models/track-by-id id albums)]
+                 (when-let [track (models/track-by-id albums id)]
                    (when-let [type (type-by-ext ext)]
                      (let [in  (open track type)
                            len (length track type)]
