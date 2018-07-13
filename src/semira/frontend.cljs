@@ -11,7 +11,8 @@
             [semira.frontend.audio :as audio]
             [semira.frontend.components :as components]
             [semira.frontend.shortcuts :as shortcuts]
-            [semira.frontend.sync :as sync]))
+            [semira.frontend.sync :as sync]
+            [semira.frontend.title :as title]))
 
 (enable-console-print!)
 
@@ -22,7 +23,8 @@
   (do
     (audio/setup!)
     (sync/setup!)
-    (shortcuts/setup!)))
+    (shortcuts/setup!)
+    (title/setup!)))
 
 (reagent/render-component [components/main-component :debug (debug?)]
                           (.getElementById js/document "container"))

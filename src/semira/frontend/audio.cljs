@@ -13,7 +13,6 @@
   (:require-macros [cljs.core.async.macros :as async]))
 
 (defonce state-atom (reagent/atom nil))
-(defonce play-queue-atom (reagent/atom nil))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -35,7 +34,8 @@
 
 (defn- load-and-play []
   (when-let [player (get-player)]
-    (let [{:keys [tracks position]} @play-queue-atom]
+    (let [{{:keys            [position]
+             {:keys [tracks]} :playlist} :queue} @state-atom]
       (when-let [current (nth tracks position nil)]
         (.pause player)
         (aset player "autoplay" true)
@@ -58,9 +58,9 @@
         (.load player)
         (catch js/Error e)))))
 
-(defn play [tracks pos]
+(defn play [playlist pos]
   (stop)
-  (reset! play-queue-atom {:position pos, :tracks tracks})
+  (swap! state-atom assoc :queue {:position pos, :playlist playlist})
   (load-and-play))
 
 (defn play-pause []
@@ -71,15 +71,16 @@
         (.pause player)))))
 
 (defn next []
-  (let [{:keys [position tracks] :as play-queue} @play-queue-atom]
+  (let [{{:keys            [position]
+          {:keys [tracks]} :playlist} :queue} @state-atom]
     (when (< (inc position) (count tracks))
-      (swap! play-queue-atom update :position inc)
+      (swap! state-atom update-in [:queue :position] inc)
       (load-and-play))))
 
 (defn prev []
-  (let [{:keys [position tracks] :as play-queue} @play-queue-atom]
+  (let [{{:keys [position]} :queue} @state-atom]
     (when (pos? position)
-      (swap! play-queue-atom update :position dec)
+      (swap! state-atom update-in [:queue :position] dec)
       (load-and-play))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -113,12 +114,12 @@
                   (not (aget player "ended")))}))
 
 (defn- update-state! []
-  (let [player-state (get-player-state)
-        {:keys [current-track] :as state} @state-atom
-        new-state (assoc player-state
-                         :current-track
-                         (when-not (:ended player-state)
-                           current-track))]
+  (let [{:keys [ended]
+         :as   player-state} (get-player-state)
+        state                @state-atom
+        new-state            (-> state
+                                 (merge player-state)
+                                 (cond-> ended (dissoc :current-track)))]
     (when-not (= new-state state)
       (reset! state-atom new-state))
     new-state))

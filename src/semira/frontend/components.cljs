@@ -13,7 +13,7 @@
             [semira.frontend.sync :as sync]
             [semira.frontend.utils :as utils]))
 
-(defn tracks-component [tracks]
+(defn tracks-component [{:keys [tracks] :as album}]
   (let [{:keys [current-track
                 current-time
                 paused
@@ -33,7 +33,7 @@
                                     (string/join " ")))}
            [:a {:on-click #(if (= track current-track)
                              (audio/play-pause)
-                             (audio/play tracks pos))}
+                             (audio/play album pos))}
             [:div.details
              (for [k [:year :genre :artist :album :title :composer]]
                (when-let [v (get track k)]
@@ -60,7 +60,7 @@
            [:div {:key k, :class k} (utils/h v)]))]]
      (when selected
        [:div.album
-        [tracks-component tracks]])]))
+        [tracks-component album]])]))
 
 (def album-component-scroll-into-view
   (with-meta album-component
