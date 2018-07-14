@@ -1,47 +1,45 @@
-#+LaTeX_HEADER: \usepackage{parskip}
+* Semira's music
 
-Semira sings songs!
+#+html: <a href="https://circleci.com/gh/remvee/semira"><img src="https://circleci.com/gh/remvee/semira.svg?style=svg" /></a>
 
-#+LaTeX: \pagebreak
+** What is this?
 
-* What is this?
+   A simple application to stream audio from your server to your browser
+   for listening.  It provides a HTML5 frontend to audio files (MP3,
+   FLAC, OGG, M4A) for searching and playing.  The files are recoded
+   before streaming them to save bandwidth and be compatible with the
+   browser you are using.
 
-A simple application to stream audio from your server to your browser
-for listening.  It provides a HTML5 frontend to audio files (MP3,
-FLAC, OGG, M4A) for searching and playing.  The files are recoded
-before streaming them to save bandwidth and be compatible with the
-browser you are using.
+** How does it work?
 
-* How does it work?
+   This application is build using Clojure and ClojureScript to handle
+   user requests and uses GStreamer to recode audio files.  The recoded
+   audio files are cached for later use.
 
-This application is build using Clojure and ClojureScript to handle
-user requests and uses GStreamer to recode audio files.  The recoded
-audio files are cached for later use.
+** Installation
 
-* Installation
+   The source directory includes a Dockerfile to build a [[https://www.docker.io/][docker]] image;
 
-The source directory includes a Dockerfile to build a [[https://www.docker.io/][docker]] image;
+   #+BEGIN_SRC sh
+   compass compile
+   lein uberjar
+   docker build -t semira .
+   docker run -p 8080:8080 -v $HOME/Music:/home/app/Music:ro semira
+   #+END_SRC
 
-#+BEGIN_SRC sh
-compass compile
-lein uberjar
-docker build -t semira .
-docker run -p 8080:8080 -v $HOME/Music:/home/app/Music:ro semira
-#+END_SRC
+   When Jetty reports it is listening on port 8080, hit the [[http://localhost:8080/update][/update]]
+   location to index the MP3, FLAC, OGG and M4A files in your home Music
+   directory.  The /update location will redirect to / after a few
+   seconds while the indexer continues to collect the audio meta data.
 
-When Jetty reports it is listening on port 8080, hit the [[http://localhost:8080/update][/update]]
-location to index the MP3, FLAC, OGG and M4A files in your home Music
-directory.  The /update location will redirect to / after a few
-seconds while the indexer continues to collect the audio meta data.
+** License
 
-* License
+   Copyright (c) Remco van 't Veer. All rights reserved.
 
-Copyright (c) Remco van 't Veer. All rights reserved.
-
-The use and distribution terms for this software are covered by the
-Eclipse Public License 1.0
-(http://opensource.org/licenses/eclipse-1.0.php) which can be found in
-the file epl-v10.html at the root of this distribution.  By using this
-software in any fashion, you are agreeing to be bound by the terms of
-this license.  You must not remove this notice, or any other, from
-this software.
+   The use and distribution terms for this software are covered by the
+   Eclipse Public License 1.0
+   (http://opensource.org/licenses/eclipse-1.0.php) which can be found in
+   the file epl-v10.html at the root of this distribution.  By using this
+   software in any fashion, you are agreeing to be bound by the terms of
+   this license.  You must not remove this notice, or any other, from
+   this software.
