@@ -12,8 +12,7 @@
             [cljs.reader :as reader]
             [clojure.string :as string]
             [reagent.core :as reagent]
-            [semira.frontend.utils :as utils])
-  (:require-macros [cljs.core.async.macros :as async]))
+            [semira.frontend.utils :as utils]))
 
 (defonce albums-atom (reagent/atom nil))
 

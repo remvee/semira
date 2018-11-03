@@ -1,8 +1,7 @@
 (ns semira.frontend.title
   (:require [cljs.core.async :as async]
             [clojure.string :as string]
-            [semira.frontend.audio :as audio])
-  (:require-macros [cljs.core.async.macros :as async]))
+            [semira.frontend.audio :as audio]))
 
 (def app-name "SEMIRA")
 

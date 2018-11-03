@@ -1,28 +1,29 @@
 (defproject semira "1.0.0-SNAPSHOT"
   :description "Semira sings songs."
-  :dependencies [[org.clojure/clojure "1.8.0"]
-                 [org.clojure/clojurescript "1.8.51"]
-                 [org.clojure/tools.logging "0.4.0"]
+  :dependencies [[org.clojure/clojure "1.9.0"]
+                 [org.clojure/clojurescript "1.10.439"]
+                 [org.clojure/tools.logging "0.4.1"]
                  [org.slf4j/slf4j-log4j12 "1.7.25"]
-                 [compojure "1.6.0"]
-                 [ring/ring-jetty-adapter "1.6.3"]
+                 [compojure "1.6.1"]
+                 [ring/ring-jetty-adapter "1.7.1"]
                  [hiccup "1.0.5"]
                  [ring-partial-content "1.0.0"]
                  [org/jaudiotagger "2.0.3"]
-                 [org.clojure/core.async "0.3.443"]
-                 [cljs-http "0.1.44"]
-                 [reagent "0.7.0"]]
+                 [org.clojure/core.async "0.4.474"]
+                 [cljs-http "0.1.45"]
+                 [reagent "0.8.1"]]
 
-  :plugins [[lein-cljsbuild "1.1.3"]
-            [lein-figwheel "0.5.3-2"]
+  :plugins [[lein-cljsbuild "1.1.7"]
+            [lein-figwheel "0.5.17"]
             [deraen/lein-sass4clj "0.3.1"]
             [lein-exec "0.3.7"]]
 
   :figwheel {:css-dirs ["generated/public"]}
 
-  :profiles {:dev     {:dependencies [[figwheel-sidecar "0.5.14"]
-                                      [com.cemerick/piggieback "0.2.2"]
-                                      [ring/ring-mock "0.3.1"]]}
+  :profiles {:dev     {:dependencies [[figwheel-sidecar "0.5.17"]
+                                      [cider/piggieback "0.3.10"]
+                                      [ring/ring-mock "0.3.2"]]
+                       :repl-options {:nrepl-middleware [cider.piggieback/wrap-cljs-repl]}}
              :uberjar {:aot        :all
                        :prep-tasks ["compile-sass" "compile" ["cljsbuild" "once" "prod"]]}}
 
@@ -44,7 +45,6 @@
                        :dev  {:source-paths ["src"]
                               :figwheel     true
                               :compiler     {:output-to  "generated/public/semira-dev.js"
-                                             :output-dir "generated/public/semira-dev"}}}}
-
-  :repl-options {:init    (do (use 'figwheel-sidecar.repl-api) (start-figwheel!))
-                 :init-ns semira.core})
+                                             :output-dir "generated/public/semira-dev"
+                                             :asset-path "semira-dev"
+                                             :main       "semira.frontend"}}}})

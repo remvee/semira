@@ -9,8 +9,7 @@
 (ns semira.frontend.audio
   (:refer-clojure :exclude [next])
   (:require [cljs.core.async :as async]
-            [reagent.core :as reagent])
-  (:require-macros [cljs.core.async.macros :as async]))
+            [reagent.core :as reagent]))
 
 (defonce state-atom (reagent/atom nil))
 
