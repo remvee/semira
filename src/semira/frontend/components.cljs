@@ -51,8 +51,9 @@
   (let [{:keys [current-track paused]} (audio/state)]
     [:li.album
      {:key   id
-      :class (when (some (partial = current-track) tracks)
-               (if paused "paused" "playing"))}
+      :class [(when (some (partial = current-track) tracks)
+                (if paused "paused" "playing"))
+              (when selected "selected")]}
      [:a {:on-click #(sync/select-album! id (not selected))}
       [:div.details
        (for [k [:year :genre :artist :album :composer]]
@@ -86,7 +87,7 @@
 
   (defn search-component []
     [:div.search
-     [:input {:type        "search"
+     [:input {:type        "text"
               :value       @search-atom
               :placeholder ".."
               :on-change   #(let [v (-> % .-target .-value)]

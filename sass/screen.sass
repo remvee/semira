@@ -31,7 +31,8 @@ a
 main
   max-width: 30rem
   margin: 0 auto
-  background: #fff
+  background: #f8f8f8
+  box-shadow: 0 .1rem 3rem rgba(#000, 0.1)
 
 p
   padding: 1rem
@@ -46,12 +47,20 @@ p
 input
   font-size: 1rem
   font-family: $font-family
-  padding: .8rem
+  padding: .75rem
   display: block
   width: 100%
   border: solid #ddd 1px
   box-shadow: inset 0 0 .6rem #ddd
   appearance: none
+  -moz-appearance: none
+  -webkit-appearance: none
+  transition: background .5s
+  background: #f8f8f8
+
+  &:focus
+    background: #fff
+    outline: none
 
 ul, ol
   margin-top: 1rem
@@ -60,7 +69,7 @@ li
   padding: 1rem
   @extend %clearfix
 
-  border-top: solid #ddd 1px
+  border-top: solid rgba(#000, .2) 1px
   transition: background .5s
 
   &.track .details
@@ -85,11 +94,23 @@ li
   .composer
     font-size: .66rem
 
-.playing
-  background: rgba(#ff0, .2)
+  &.album
+    background: #f8f8f8
 
-.paused
-  background: rgba(#bbb, .2)
+    &.selected
+      background: #fff
+      border: solid rgba(#000, .2) 1px
+      margin: 0 -.5rem -1px -.5rem
+      padding-left: 1.5rem
+      padding-right: 1.5rem
+    &.playing
+      background: #ffd
+      .playing
+        background: rgba(#ff0, .2)
+    &.paused
+      background: #eee
+      .paused
+        background: rgba(#bbb, .2)
 
 .loading
   @include animation('blink 1s infinite')
