@@ -20,8 +20,9 @@
 
 (defn- track-uri [{:keys [id]} type]
   (str "/stream/" id "."
-       (get {"audio/mpeg" "mp3"
-             "audio/ogg" "ogg"}
+       (get {"audio/mpeg"                 "mp3"
+             "audio/ogg"                  "ogg"
+             "audio/ogg; codecs=\"opus\"" "opus"}
             type)))
 
 (defn- clear-player-sources []
@@ -39,7 +40,7 @@
         (.pause player)
         (aset player "autoplay" true)
         (clear-player-sources)
-        (doseq [type ["audio/ogg" "audio/mpeg"]]
+        (doseq [type ["audio/ogg; codecs=\"opus\"" "audio/ogg" "audio/mpeg"]]
           (let [source (.createElement js/document "source")]
             (.setAttribute source "src" (track-uri current type))
             (.setAttribute source "type" type)

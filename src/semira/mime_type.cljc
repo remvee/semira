@@ -11,7 +11,8 @@
 (def type-by-ext {"flac" "audio/flac"
                   "m4a"  "audio/mp4"
                   "mp3"  "audio/mpeg"
-                  "ogg"  "audio/ogg"})
+                  "ogg"  "audio/ogg"
+                  "opus" "audio/opus"})
 
 (defn type-by-file-name [file-name]
   (type-by-ext (->> file-name (re-find #"\.(\w+)$") last)))

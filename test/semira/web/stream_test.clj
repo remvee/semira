@@ -38,4 +38,10 @@
             (is (= 200 (:status response)))
             (is (= "audio/ogg" (get-in response [:headers "Content-Type"])))
             (is (= "open:1:audio/ogg" (:body response)))
-            (is (= "length:1:audio/ogg" (get-in response [:headers "Content-Length"])))))))))
+            (is (= "length:1:audio/ogg" (get-in response [:headers "Content-Length"])))))
+        (testing "opus"
+          (let [response (handler (mock/request :get "/stream/1.opus"))]
+            (is (= 200 (:status response)))
+            (is (= "audio/opus" (get-in response [:headers "Content-Type"])))
+            (is (= "open:1:audio/opus" (:body response)))
+            (is (= "length:1:audio/opus" (get-in response [:headers "Content-Length"])))))))))

@@ -47,4 +47,13 @@
           "!" "oggmux"
           "!" "filesink" "location=" "test.ogg"]
          (sut/convert-command "test.mp3" "test.ogg" "audio/ogg"))
-      "mp3 to ogg"))
+      "mp3 to ogg")
+  (is (= ["gst-launch-1.0" "-q" "filesrc" "location=" "test.mp3"
+          "!" "mpegaudioparse"
+          "!" "mpg123audiodec"
+          "!" "audioresample"
+          "!" "opusenc" "bitrate=96000"
+          "!" "oggmux"
+          "!" "filesink" "location=" "test.opus"]
+         (sut/convert-command "test.mp3" "test.opus" "audio/opus"))
+      "mp3 to opus"))
