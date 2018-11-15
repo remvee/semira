@@ -62,8 +62,8 @@
       ([text] (recur text)))
     (recur val)))
 
-(defn album-match? [terms {:keys [search]}]
-  (not (some #(= -1 (.indexOf search %)) terms)))
+(defn album-match? [terms {:keys [search-index]}]
+  (not (some #(= -1 (.indexOf search-index %)) terms)))
 
 (defn albums []
   (let [albums @albums-atom]
@@ -79,9 +79,5 @@
                  async/<!
                  :body
                  reader/read-string
-                 (map-indexed (fn [i v]
-                                [(:id v)
-                                 (assoc v
-                                        :index i
-                                        :search (string/lower-case (str v)))]))
+                 (map-indexed (fn [i v] [(:id v) (assoc v :index i)]))
                  (into {})))))

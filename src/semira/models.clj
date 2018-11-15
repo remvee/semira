@@ -7,12 +7,11 @@
 ;; this software.
 
 (ns semira.models
-  (:require [clojure.java.io :as io]
-            [clojure.string :as s]
+  (:require [clojure.string :as s]
             [clojure.tools.logging :as log]
             [semira.audio :as audio]
             [semira.utils :as utils])
-  (:import [java.io File FileInputStream FileOutputStream PushbackReader]))
+  (:import java.io.File))
 
 (def ^:private albums-file (get (System/getenv) "SEMIRA_ALBUMS_SEXP"
                                 "/tmp/semira.sexp"))

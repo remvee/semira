@@ -19,7 +19,7 @@
 (def rss-description "Latest additions")
 (def rss-page-size 20)
 
-(def album-keys [:genre :composer :artist :album :year :id]) ; also sort order!
+(def album-keys [:genre :composer :artist :album :year :id :search-index]) ; also sort order!
 (def track-keys [:id :composer :artist :album :title :length])
 
 (defn titleize [rec & keys]
