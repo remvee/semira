@@ -6,9 +6,9 @@
 
    A simple application to stream audio from your server to your browser
    for listening.  It provides a HTML5 frontend to audio files (MP3,
-   FLAC, OGG, M4A) for searching and playing.  The files are recoded
-   before streaming them to save bandwidth and be compatible with the
-   browser you are using.
+   FLAC, Ogg Vorbis/Opus, M4A) for searching and playing.  The files are
+   recoded before streaming them to save bandwidth and be compatible with
+   the browser you are using.
 
 ** How does it work?
 
@@ -27,9 +27,10 @@
    #+END_SRC
 
    When Jetty reports it is listening on port 8080, hit the [[http://localhost:8080/update][/update]]
-   location to index the MP3, FLAC, OGG and M4A files in your home Music
-   directory.  The /update location will redirect to / after a few
-   seconds while the indexer continues to collect the audio meta data.
+   location to index the MP3, FLAC, Ogg Vorbis/Opus and M4A files in your
+   home Music directory.  The ~/update~ location will redirect to ~/~
+   after a few seconds while the indexer continues to collect the audio
+   meta data; newly collected data will not show up until reload.
 
 ** License
 
