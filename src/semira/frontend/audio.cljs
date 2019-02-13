@@ -58,17 +58,25 @@
         (.load player)
         (catch js/Error e)))))
 
-(defn play [playlist pos]
-  (stop)
-  (swap! state-atom assoc :queue {:position pos, :playlist playlist})
-  (load-and-play))
+(defn play
+  ([playlist pos]
+   (stop)
+   (swap! state-atom assoc :queue {:position pos, :playlist playlist})
+   (load-and-play))
+  ([]
+    (when-let [player (get-player)]
+      (.play player))))
+
+(defn pause []
+  (when-let [player (get-player)]
+    (.pause player)))
 
 (defn play-pause []
   (when (:current-track @state-atom)
     (when-let [player (get-player)]
       (if (.-paused player)
-        (.play player)
-        (.pause player)))))
+        (play)
+        (pause)))))
 
 (defn next []
   (let [{{:keys            [position]
@@ -82,6 +90,10 @@
     (when (pos? position)
       (swap! state-atom update-in [:queue :position] dec)
       (load-and-play))))
+
+(defn seek [time]
+  (when-let [player (get-player)]
+    (aset player "currentTime" time)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

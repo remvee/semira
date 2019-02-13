@@ -32,11 +32,17 @@ a
 main
   max-width: $max-width
   margin: 0 auto
+  margin-bottom: 5em
   background: #f8f8f8
   box-shadow: 0 .1rem 3rem rgba(#000, 0.1)
 
 p
   padding: 1rem
+
+button
+  appearance: none
+  -moz-appearance: none
+  -webkit-appearance: none
 
 .error
   text-align: center
@@ -45,7 +51,7 @@ p
   padding: 1rem
   margin-bottom: -1rem
 
-input
+input[type=text]
   font-size: 1rem
   font-family: $font-family
   padding: .75rem
@@ -115,8 +121,81 @@ li
   &.albums, &.tracks
     text-align: center
 
+footer
+  position: fixed
+  bottom: 0
+  left: 0
+  right: 0
+
+  .player
+    position: relative
+    max-width: $max-width
+    height: 0
+    margin: 0 auto
+    padding: 0
+    background: #eee
+    transition: all .5s
+    box-shadow: none
+    border: none
+
+    &.playing, &.paused
+      height: 5rem
+      padding: 1rem
+      box-shadow: 0 .1rem 3rem rgba(#000, 0.1)
+      border: solid rgba(#000, .2) 1px
+    &.playing
+      background: #ffd
+    &.paused
+      background: #eee
+
+    button
+      position: absolute
+      background: transparent
+      top: 0
+      bottom: 0
+      left: 0
+      margin: 1rem
+      width: 3rem
+      height: 3rem
+      border: none
+      padding: 0
+      transition: box-shadow .1s
+      cursor: pointer
+      &:active
+        box-shadow: inset 0 0 .6rem rgba(#000, .2)
+
+      svg
+        display: inline-block
+        width: 100%
+        height: 100%
+
+    .track
+      position: absolute
+      top: 0
+      bottom: 0
+      left: 3.5rem
+      right: 0
+      padding: 1em
+
+      .details
+        display: block
+        height: 2rem
+        overflow: hidden
+        white-space: nowrap
+        text-overflow: ellipsis
+
+        div
+          display: inline
+
+      input[type=range]
+        width: 100%
+        height: .5rem
+        display: block
+
 @media (min-width: $max-width)
   li.album.selected
     margin: 0 -.5rem -1px -.5rem
     padding-left: 1.5rem
     padding-right: 1.5rem
+  footer .player
+    max-width: $max-width + 1rem

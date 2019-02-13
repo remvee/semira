@@ -13,6 +13,12 @@
             [semira.frontend.sync :as sync]
             [semira.frontend.utils :as utils]))
 
+(defn track-component [track]
+  [:div.details
+   (for [k [:artist :album :title :composer]]
+     (when-let [v (get track k)]
+       [:div {:key k, :class k} (utils/h v)]))])
+
 (defn tracks-component [{:keys [tracks] :as album}]
   (let [{:keys [current-track
                 current-time
@@ -34,10 +40,7 @@
            [:a {:on-click #(if (= track current-track)
                              (audio/play-pause)
                              (audio/play album pos))}
-            [:div.details
-             (for [k [:year :genre :artist :album :title :composer]]
-               (when-let [v (get track k)]
-                 [:div {:key k, :class k} (utils/h v)]))]
+            (track-component track)
             [:div.length
              (when (= track current-track)
                [:span.played (utils/seconds->time current-time) " / "])
@@ -97,11 +100,49 @@
 (defn audio-status-component []
   [:div.audio-status (pr-str (audio/state))])
 
+(def play-svg
+  [:svg {:viewBox "0 0 512 1024" :xmlns "http://www.w3.org/2000/svg"}
+   [:path {:d "M0 192l512 320L0 832V192z"}]])
+
+(def pause-svg
+  [:svg {:viewBox "0 0 512 1024" :xmlns "http://www.w3.org/2000/svg"}
+   [:path {:d "M0 832h192V192H0V832zM320 192v640h192V192H320z"}]])
+
+(defn player-component []
+  (let [{:keys              [paused current-track current-time]
+         {:keys [length]}   :current-track
+         {:keys [playlist]} :queue} (audio/state)
+        current-track               (when current-track
+                                      (into current-track playlist))]
+    [:div.player {:class (when current-track
+                           (if paused "paused" "playing"))}
+     (if paused
+       [:button.play {:on-click #(audio/play)} play-svg]
+       [:button.pause {:on-click #(audio/pause)} pause-svg])
+     [:div.track
+      [:div.details
+       (when current-track
+         (->> [:artist :title]
+              (map current-track)
+              (filter identity)
+              (map utils/h)
+              (string/join " - ")))]
+      (when (and length current-track)
+        [:input {:type      "range"
+                 :min       0
+                 :max       length
+                 :value     current-time
+                 :read-only true
+                 :on-change #(audio/seek (-> % .-target .-value))}])]]))
+
 (defn main-component [& {:keys [debug]}]
-  [:main
-   [search-component]
-   [albums-component]
-   (when debug [audio-status-component])])
+  [:div
+   [:main
+    [search-component]
+    [albums-component]
+    (when debug [audio-status-component])]
+   [:footer
+    [player-component]]])
 
 (defonce do-setup
   (.addEventListener js/window "scroll"
