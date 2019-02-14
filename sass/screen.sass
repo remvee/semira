@@ -1,6 +1,7 @@
 @import "./reset"
 @import "./animation"
 
+$max-width: 30rem
 *
   box-sizing: border-box
 
@@ -29,7 +30,7 @@ a
   cursor: pointer
 
 main
-  max-width: 30rem
+  max-width: $max-width
   margin: 0 auto
   background: #f8f8f8
   box-shadow: 0 .1rem 3rem rgba(#000, 0.1)
@@ -100,9 +101,6 @@ li
     &.selected
       background: #fff
       border: solid rgba(#000, .2) 1px
-      margin: 0 -.5rem -1px -.5rem
-      padding-left: 1.5rem
-      padding-right: 1.5rem
     &.playing
       background: #ffd
       .playing
@@ -116,3 +114,9 @@ li
   @include animation('blink 1s infinite')
   &.albums, &.tracks
     text-align: center
+
+@media (min-width: $max-width)
+  li.album.selected
+    margin: 0 -.5rem -1px -.5rem
+    padding-left: 1.5rem
+    padding-right: 1.5rem
