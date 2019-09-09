@@ -1,17 +1,18 @@
 (defproject semira "1.0.0-SNAPSHOT"
   :description "Semira sings songs."
-  :dependencies [[org.clojure/clojure "1.9.0"]
-                 [org.clojure/clojurescript "1.10.439"]
-                 [org.clojure/tools.logging "0.4.1"]
-                 [org.slf4j/slf4j-log4j12 "1.7.25"]
+  :dependencies [[org.clojure/clojure "1.10.1"]
+                 [org.clojure/clojurescript "1.10.520"]
+                 [org.clojure/tools.logging "0.5.0"]
+                 [org.slf4j/slf4j-log4j12 "1.7.28"]
                  [compojure "1.6.1"]
                  [ring/ring-jetty-adapter "1.7.1"]
                  [hiccup "1.0.5"]
                  [ring-partial-content "1.0.0"]
-                 [org/jaudiotagger "2.0.3"]
-                 [org.clojure/core.async "0.4.474"]
-                 [cljs-http "0.1.45"]
+                 [net.jthink/jaudiotagger "2.2.5"]
+                 [org.clojure/core.async "0.4.500"]
+                 [cljs-http "0.1.46"]
                  [reagent "0.8.1"]]
+  :repositories {"jaudiotagger-repository" "https://dl.bintray.com/ijabz/maven"}
 
   :plugins [[lein-cljsbuild "1.1.7"]
             [lein-figwheel "0.5.17"]
@@ -20,9 +21,9 @@
 
   :figwheel {:css-dirs ["generated/public"]}
 
-  :profiles {:dev     {:dependencies [[figwheel-sidecar "0.5.17"]
-                                      [cider/piggieback "0.3.10"]
-                                      [ring/ring-mock "0.3.2"]]
+  :profiles {:dev     {:dependencies [[figwheel-sidecar "0.5.19"]
+                                      [cider/piggieback "0.4.1"]
+                                      [ring/ring-mock "0.4.0"]]
                        :repl-options {:nrepl-middleware [cider.piggieback/wrap-cljs-repl]}}
              :uberjar {:aot        :all
                        :prep-tasks ["compile-sass" "compile" ["cljsbuild" "once" "prod"]]}}
