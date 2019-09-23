@@ -62,8 +62,13 @@
       ([text] (recur text)))
     (recur val)))
 
-(defn album-match? [terms {:keys [search-index]}]
-  (not (some #(= -1 (.indexOf search-index %)) terms)))
+(defn search-special? [value]
+  (string/starts-with? value "rss-id|"))
+
+(defn album-match? [terms {:keys [id search-index]}]
+  (if (and (= 1 (count terms)) (-> terms first (string/starts-with? "rss-id|")))
+    (= id (-> terms first (string/split "|") last))
+    (not (some #(= -1 (.indexOf search-index %)) terms))))
 
 (defn albums []
   (let [albums @albums-atom]

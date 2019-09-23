@@ -46,7 +46,7 @@
           (map (fn [album]
                  (vec [:item
                        [:title (hiccup/h (titleize album :artist :album))]
-                       [:link (str "/#" (:id album))]
+                       [:link (str "/#rss-id|" (:id album))]
                        [:guid (:id album)]
                        [:description (str "<![CDATA[" (-> album track-list hiccup/html) "]]>")]
                        [:author]

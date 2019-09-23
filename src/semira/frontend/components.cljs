@@ -91,7 +91,9 @@
   (defn search-component []
     [:div.search
      [:input {:type        "text"
-              :value       @search-atom
+              :value       (let [value @search-atom]
+                             (when-not (sync/search-special? value)
+                               value))
               :placeholder ".."
               :on-change   #(let [v (-> % .-target .-value)]
                               (reset! search-atom v)
