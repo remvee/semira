@@ -9,6 +9,7 @@
 (ns semira.core
   (:gen-class)
   (:require [ring.adapter.jetty :refer [run-jetty]]
+            [semira.models :as models]
             [semira.web :as web]))
 
 (defonce server-atom (atom nil))
@@ -24,7 +25,8 @@
         port (Integer/parseInt (get (System/getenv) "PORT" "8080"))]
     (reset! server-atom
             (run-jetty #'web/app
-                       {:host host, :port port, :join? false}))))
+                       {:host host, :port port, :join? false}))
+    (models/scan-if-empty)))
 
 (defn -main [& _]
   (start!))

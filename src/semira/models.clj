@@ -110,6 +110,10 @@
     (log/info "scanned in" (- (System/currentTimeMillis) before) "ms"))
   (send-off-backup))
 
+(defn scan-if-empty []
+  (when (empty? (albums))
+    (scan)))
+
 (defn- remove-track [albums id]
   (->> albums
        (map (fn [album]
