@@ -1,7 +1,5 @@
 * Semira's music
 
-#+html: <a href="https://circleci.com/gh/remvee/semira"><img src="https://circleci.com/gh/remvee/semira.svg?style=svg" /></a>
-
 ** What is this?
 
    A simple application to stream audio from your server to your browser
