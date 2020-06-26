@@ -102,28 +102,32 @@
 
 (defn- get-player-state []
   (when-let [player (get-player)]
-    {:error (when (.-error player)
-              (-> player .-error .-code))
-     :current-time (round-secs (aget player "currentTime"))
-     :ended (aget player "ended")
-     :muted (aget player "muted")
+    {:error         (when-let [error (.-error player)]
+                      (case (.-code error)
+                        1 :aborted
+                        2 :network
+                        3 :decode
+                        4 :not-supported
+                        :unknown))
+     :current-time  (round-secs (aget player "currentTime"))
+     :ended         (aget player "ended")
+     :muted         (aget player "muted")
      :network-state (case (aget player "networkState")
                       0 :empty
                       1 :idle
                       2 :loading
                       3 :no-source
                       :unknown)
-     :ready-state (case (aget player "readyState")
-                    0 :nothing
-                    1 :meta-data
-                    2 :current-data
-                    3 :future-data
-                    4 :enough-data
-                    :unknown)
-     :seeking (aget player "seeking")
-     :volume (aget player "volume")
-     :paused (and (aget player "paused")
-                  (not (aget player "ended")))}))
+     :ready-state   (case (aget player "readyState")
+                      0 :nothing
+                      1 :meta-data
+                      2 :current-data
+                      3 :future-data
+                      4 :enough-data
+                      :unknown)
+     :volume        (aget player "volume")
+     :paused        (and (aget player "paused")
+                         (not (aget player "ended")))}))
 
 (defn- update-state! []
   (let [{:keys [ended]
