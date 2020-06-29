@@ -12,7 +12,7 @@
                   "m4a"  "audio/mp4"
                   "mp3"  "audio/mpeg"
                   "ogg"  "audio/ogg"
-                  "opus" "audio/opus"})
+                  "opus" "audio/ogg; codecs=\"opus\""})
 
 (defn type-by-file-name [file-name]
   (type-by-ext (->> file-name (re-find #"\.(\w+)$") last)))

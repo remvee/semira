@@ -33,22 +33,23 @@
   (.availableProcessors (Runtime/getRuntime)))
 
 (defn convert-command [in-file out-file target-type]
-  (let [decoder ({"audio/flac" ["flacparse" "!" "flacdec"]
-                  "audio/ogg"  ["oggdemux" "!" "vorbisdec"]
-                  "audio/opus" ["oggdemux" "!" "opusdec"]
-                  "audio/mpeg" ["mpegaudioparse" "!" "mpg123audiodec"]
-                  "audio/mp4"  ["qtdemux" "!" "faad"]}
+  (let [decoder ({"audio/flac"                 ["flacparse" "!" "flacdec"]
+                  "audio/ogg"                  ["oggdemux" "!" "vorbisdec"]
+                  "audio/ogg; codecs=\"opus\"" ["oggdemux" "!" "opusdec"]
+                  "audio/mpeg"                 ["mpegaudioparse" "!" "mpg123audiodec"]
+                  "audio/mp4"                  ["qtdemux" "!" "faad"]}
                  (type-by-file-name in-file))
-        encoder ({"audio/mpeg" ["audioconvert"
-                                "!" "lamemp3enc" "target=bitrate" (str "bitrate=" *bitrate*)
-                                "!" "xingmux"
-                                "!" "id3mux"]
-                  "audio/ogg"  ["audioconvert"
-                                "!" "vorbisenc" (str "bitrate=" (* *bitrate* 1000))
-                                "!" "oggmux"]
-                  "audio/opus" ["audioresample"
-                                "!" "opusenc" (str "bitrate=" (* *bitrate* 1000))
-                                "!" "oggmux"]}
+        encoder ({"audio/mpeg"                 ["audioconvert"
+                                                "!" "lamemp3enc" "target=bitrate" (str "bitrate=" *bitrate*)
+                                                "!" "xingmux"
+                                                "!" "id3mux"]
+                  "audio/ogg"                  ["audioconvert"
+                                                "!" "vorbisenc" (str "bitrate=" (* *bitrate* 1000))
+                                                "!" "oggmux"]
+                  "audio/ogg; codecs=\"opus\"" ["audioconvert"
+                                                "!" "audioresample"
+                                                "!" "opusenc" (str "bitrate=" (* *bitrate* 1000))
+                                                "!" "oggmux"]}
                  target-type)]
     (flatten ["gst-launch-1.0" "-q"
               "filesrc" "location=" in-file "!"

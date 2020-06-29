@@ -51,9 +51,10 @@
   (is (= ["gst-launch-1.0" "-q" "filesrc" "location=" "test.mp3"
           "!" "mpegaudioparse"
           "!" "mpg123audiodec"
+          "!" "audioconvert"
           "!" "audioresample"
           "!" "opusenc" "bitrate=96000"
           "!" "oggmux"
           "!" "filesink" "location=" "test.opus"]
-         (sut/convert-command "test.mp3" "test.opus" "audio/opus"))
+         (sut/convert-command "test.mp3" "test.opus" "audio/ogg; codecs=\"opus\""))
       "mp3 to opus"))
