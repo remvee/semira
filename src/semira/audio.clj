@@ -129,7 +129,10 @@
   (let [track (.getFirst tag Mp4FieldKey/TRACK)]
     (merge-with #(or %1 %2)
                 (base-tag-fields tag)
-                {:genre (mapv field-str (.get tag Mp4FieldKey/GENRE_CUSTOM))}
+                {:genre (->> (.get tag Mp4FieldKey/GENRE_CUSTOM)
+                             (map field-str)
+                             sort
+                             vector)}
                 (let [[_ track] (re-matches #"(\d+)(/\d+)?" (str track))]
                   {:track       (when track (Integer/parseInt track))}))))
 

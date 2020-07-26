@@ -19,8 +19,25 @@
 (def rss-description "Latest additions")
 (def rss-page-size 20)
 
-(def album-keys [:genre :composer :artist :album :year :id :search-index]) ; also sort order!
-(def track-keys [:id :composer :artist :album :title :length])
+(defn ->album [{:keys [genre composer artist album year id search-index]}]
+  {:genre        (sort genre)
+   :composer     (sort composer)
+   :artist       (sort artist)
+   :album        album
+   :year         year
+   :id           id
+   :search-index search-index})
+
+(defn ->track [{:keys [composer artist album title length id]}]
+  {:composer (sort composer)
+   :artist   (sort artist)
+   :album    album
+   :title    title
+   :length   length
+   :id       id})
+
+(defn album-sort [{:keys [genre composer artist album year id]}]
+  (str [genre composer artist album year id]))
 
 (defn titleize [rec & keys]
   (->> keys (map rec) flatten (filter identity) (string/join " - ")))
@@ -57,15 +74,15 @@
   (compojure/GET "/album/:id" {:keys        [albums]
                                {:keys [id]} :params}
                  (when-let [album (models/album-by-id albums id)]
-                   (let [album (assoc (select-keys album album-keys)
-                                      :tracks (map #(select-keys % track-keys) (:tracks album)))]
+                   (let [album (assoc (->album album)
+                                      :tracks (map ->track (:tracks album)))]
                      {:status  200
                       :headers {"Content-Type" "application/clojure; charset=utf-8"}
                       :body    (pr-str album)})))
   (compojure/GET "/albums" {:keys [albums]}
                  (let [albums (->> albums
-                                   (map #(select-keys % album-keys))
-                                   (utils/sort-by-keys album-keys))]
+                                   (map ->album)
+                                   (sort-by album-sort))]
                    {:status  200
                     :headers {"Content-Type" "application/clojure; charset=utf-8"}
                     :body    (pr-str albums)}))
