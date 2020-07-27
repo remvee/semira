@@ -7,26 +7,36 @@
 ;; this software.
 
 (ns semira.web.albums
-  (:require [clojure.string :as string]
+  (:require [clojure.java.io :as io]
+            [clojure.string :as string]
             [compojure.core :as compojure]
             [hiccup.core :as hiccup]
-            [semira.models :as models]
-            [semira.utils :as utils])
+            [semira.image :as image]
+            [semira.models :as models])
   (:import java.text.SimpleDateFormat
            java.util.Date))
 
 (def app-title "SEMIRA")
+
 (def rss-description "Latest additions")
 (def rss-page-size 20)
 
-(defn ->album [{:keys [genre composer artist album year id search-index]}]
+(def artwork-size 500)
+(def artwork-expires-msecs (* 1000 60 60 24 365)) ; one year
+
+(defn rfc1123-date-format []
+  (doto (SimpleDateFormat. "EEE, dd MMM yyyy HH:mm:ss z")
+    (.setTimeZone (java.util.TimeZone/getTimeZone "GMT"))))
+
+(defn ->album [{:keys [genre composer artist album year id search-index artwork]}]
   {:genre        (sort genre)
    :composer     (sort composer)
    :artist       (sort artist)
    :album        album
    :year         year
    :id           id
-   :search-index search-index})
+   :search-index search-index
+   :artwork      (some? artwork)})
 
 (defn ->track [{:keys [composer artist album title length id]}]
   {:composer (sort composer)
@@ -42,10 +52,13 @@
 (defn titleize [rec & keys]
   (->> keys (map rec) flatten (filter identity) (string/join " - ")))
 
-(defn track-list [album]
-  [:ol
-   (map #(vec [:li (hiccup/h (titleize % :artist :album :title))])
-        (:tracks album))])
+(defn track-list [{:keys [id artwork] :as album}]
+  [:div
+   (when artwork
+     [:img {:src (str "/artwork/" id)}])
+   [:ol
+    (map #(vec [:li (hiccup/h (titleize % :artist :album :title))])
+         (:tracks album))]])
 
 (defn date-rfc822 [date]
   (.format (SimpleDateFormat. "EEE, d MMM yyyy HH:mm:ss z")
@@ -70,6 +83,15 @@
                        [:pubDate (date-rfc822 (:mtime album))]]))
                albums)]])))
 
+(defn image-stream [path]
+  (let [image          (-> path
+                           io/file
+                           image/from-file)]
+    (-> image
+        (image/crop-to-square)
+        (image/scale [artwork-size artwork-size])
+        (image/to-stream ))))
+
 (compojure/defroutes bare-handler
   (compojure/GET "/album/:id" {:keys        [albums]
                                {:keys [id]} :params}
@@ -79,6 +101,15 @@
                      {:status  200
                       :headers {"Content-Type" "application/clojure; charset=utf-8"}
                       :body    (pr-str album)})))
+  (compojure/GET "/artwork/:id" {:keys        [albums]
+                                 {:keys [id]} :params}
+                 (when-let [artwork (:artwork (models/album-by-id albums id))]
+                   {:status  200
+                    :headers {"Content-Type"  "image/jpeg"
+                              "Expires"       (.format (rfc1123-date-format)
+                                                       (Date. (+ (System/currentTimeMillis)
+                                                                 artwork-expires-msecs)))}
+                    :body    (image-stream artwork)}))
   (compojure/GET "/albums" {:keys [albums]}
                  (let [albums (->> albums
                                    (map ->album)
@@ -100,7 +131,8 @@
                    (models/purge))
                  (Thread/sleep 2000)
                  {:status  307
-                  :headers {"Location" "/"}}))
+                  :headers {"Location" "/"}})
+)
 
 (def handler
   (fn [req]

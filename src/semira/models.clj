@@ -18,6 +18,8 @@
 (def ^:private music-dir (get (System/getenv) "SEMIRA_MUSIC_DIR"
                               (str (get (System/getenv) "HOME") "/Music")))
 
+(def artwork-file-name-re #"(cover|artwork|.*front)\.(jpg|png)")
+
 (defonce ^:private
   album-store (atom (try
                       (read-string (slurp albums-file))
@@ -85,6 +87,15 @@
     (or (nil? mtime)
         (< mtime current-mtime))))
 
+(defn artwork [file]
+  (loop [files (.listFiles (.getParentFile file))]
+    (when-let [file (first files)]
+      (if (and (.isFile file)
+               (.canRead file)
+               (re-matches artwork-file-name-re (.getName file)))
+        (.getPath file)
+        (recur (next files))))))
+
 (defn- update-file! [file]
   (let [album-id (utils/sha1 (.getParent file))
         id       (utils/sha1 (.getPath file))
@@ -93,9 +104,10 @@
     (when (need-update-track? @album-store id mtime)
       (log/info "updating:" file)
       (swap! album-store update-track album-id (merge (audio/info file)
-                                                      {:id    id
-                                                       :path  path
-                                                       :mtime mtime})))))
+                                                      {:id      id
+                                                       :path    path
+                                                       :mtime   mtime
+                                                       :artwork (artwork file)})))))
 
 (def ^:private audio-file-re #".+\.(mp3|m4a|flac|ogg)")
 
@@ -140,3 +152,5 @@
         (remove-file! file)))
     (log/info "purged in" (- (System/currentTimeMillis) before) "ms"))
   (send-off-backup))
+
+(comment (reset! album-store nil))

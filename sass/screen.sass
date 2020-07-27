@@ -116,10 +116,24 @@ li
       .paused
         background: rgba(#bbb, .2)
 
+    div.artwork
+      margin: 1rem 0 0 0
+      max-width: 100%
+      padding-bottom: 100%
+      position: relative
+      background: rgba(#000, .2)
+      img
+        position: absolute
+        top: 0
+        max-width: 100%
+        display: inline-block
+        padding: 2px
+
 .loading
   @include animation('blink 1s infinite')
   &.albums, &.tracks
     text-align: center
+    margin-top: 1rem
 
 footer
   position: fixed

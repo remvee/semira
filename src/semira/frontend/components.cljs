@@ -50,7 +50,7 @@
 
 (defonce n-albums (reagent/atom 100))
 
-(defn album-component [{:keys [id tracks selected] :as album}]
+(defn album-component [{:keys [id tracks selected artwork] :as album}]
   (let [{:keys [current-track paused]} (audio/state)]
     [:li.album
      {:key   id
@@ -64,6 +64,9 @@
            [:div {:key k, :class k} (utils/h v)]))]]
      (when selected
        [:div.album
+        (when artwork
+          [:div.artwork
+           [:img {:src (str "/artwork/" id)}]])
         [tracks-component album]])]))
 
 (def album-component-scroll-into-view
