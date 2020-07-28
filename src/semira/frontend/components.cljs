@@ -15,7 +15,7 @@
 
 (defn track-component [track]
   [:div.details
-   (for [k [:artist :album :title :composer]]
+   (for [k [:artist :album :grouping :title :composer]]
      (when-let [v (get track k)]
        [:div {:key k, :class k} (utils/h v)]))])
 

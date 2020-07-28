@@ -61,6 +61,7 @@
              :genre
              :producer
              :remixer
+             :grouping
              :title
              :track
              :year])
@@ -86,6 +87,7 @@
   {:track       to-i
    :disc-no     to-i
    :album       first
+   :grouping    first
    :title       first
    :year        to-year
    :conductor   first

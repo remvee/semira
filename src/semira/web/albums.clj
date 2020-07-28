@@ -28,23 +28,29 @@
   (doto (SimpleDateFormat. "EEE, dd MMM yyyy HH:mm:ss z")
     (.setTimeZone (java.util.TimeZone/getTimeZone "GMT"))))
 
-(defn ->album [{:keys [genre composer artist album year id search-index artwork]}]
-  {:genre        (sort genre)
-   :composer     (sort composer)
-   :artist       (sort artist)
-   :album        album
-   :year         year
-   :id           id
-   :search-index search-index
-   :artwork      (some? artwork)})
+(defn some-vals [m]
+  (reduce (fn [m [k v]] (if (some? v) (assoc m k v) m)) nil m))
 
-(defn ->track [{:keys [composer artist album title length id]}]
-  {:composer (sort composer)
-   :artist   (sort artist)
-   :album    album
-   :title    title
-   :length   length
-   :id       id})
+(defn ->album [{:keys [genre composer artist album year id search-index artwork]}]
+  (some-vals
+   {:genre        (-> genre sort seq)
+    :composer     (-> composer sort seq)
+    :artist       (-> artist sort seq)
+    :album        album
+    :year         year
+    :id           id
+    :search-index search-index
+    :artwork      (some? artwork)}))
+
+(defn ->track [{:keys [composer artist album grouping title length id]}]
+  (some-vals
+   {:composer (-> composer sort seq)
+    :artist   (-> artist sort seq)
+    :album    album
+    :grouping grouping
+    :title    title
+    :length   length
+    :id       id}))
 
 (defn album-sort [{:keys [genre composer artist album year id]}]
   (str [genre composer artist album year id]))
