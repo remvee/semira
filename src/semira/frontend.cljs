@@ -7,7 +7,7 @@
 ;; this software.
 
 (ns semira.frontend
-  (:require [reagent.core :as reagent]
+  (:require [reagent.dom :as reagent-dom]
             [semira.frontend.audio :as audio]
             [semira.frontend.components :as components]
             [semira.frontend.shortcuts :as shortcuts]
@@ -26,5 +26,5 @@
     (shortcuts/setup!)
     (title/setup!)))
 
-(reagent/render-component [components/main-component :debug (debug?)]
-                          (.getElementById js/document "container"))
+(reagent-dom/render [components/main-component :debug (debug?)]
+                    (.getElementById js/document "container"))

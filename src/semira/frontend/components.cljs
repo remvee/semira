@@ -9,6 +9,7 @@
 (ns semira.frontend.components
   (:require [clojure.string :as string]
             [reagent.core :as reagent]
+            [reagent.dom :as reagent-dom]
             [semira.frontend.audio :as audio]
             [semira.frontend.sync :as sync]
             [semira.frontend.utils :as utils]))
@@ -76,7 +77,7 @@
                                             (not (:selected prev-props)))
                                        (and (:tracks (reagent/props this))
                                             (not (:tracks prev-props))))
-                               (utils/scroll-into-view-if-needed (reagent/dom-node this))))}))
+                               (utils/scroll-into-view-if-needed (reagent-dom/dom-node this))))}))
 
 (defn albums-component []
   (let [albums (sync/albums)]
