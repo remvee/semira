@@ -12,7 +12,8 @@
             [cljs.reader :as reader]
             [clojure.string :as string]
             [reagent.core :as reagent]
-            [semira.frontend.utils :as utils]))
+            [semira.frontend.utils :as utils]
+            [semira.text :refer [translit-to-ascii]]))
 
 (defonce albums-atom (reagent/atom nil))
 
@@ -41,6 +42,7 @@
 
 (defn normalize-search-terms [text]
   (-> text
+      translit-to-ascii
       string/lower-case
       (string/split #"\s+")))
 

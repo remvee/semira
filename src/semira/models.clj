@@ -10,6 +10,7 @@
   (:require [clojure.string :as s]
             [clojure.tools.logging :as log]
             [semira.audio :as audio]
+            [semira.text :refer [translit-to-ascii]]
             [semira.utils :as utils])
   (:import java.io.File))
 
@@ -44,11 +45,11 @@
   (assoc album
          :search-index
          (reduce (fn [m [p r]] (s/replace m p r))
-                 (.toLowerCase (str (:genre album) " "
-                                    (:composer album) " "
-                                    (:artist album) " "
-                                    (:album album) " "
-                                    (:year album)))
+                 (translit-to-ascii (.toLowerCase (str (:genre album) " "
+                                                       (:composer album) " "
+                                                       (:artist album) " "
+                                                       (:album album) " "
+                                                       (:year album))))
                  [[#"\s+" " "]
                   [#"^\s|\s$" ""]
                   [#"[^\w ]" ""]])))
