@@ -112,6 +112,7 @@
                  (when-let [artwork (:artwork (models/album-by-id albums id))]
                    {:status  200
                     :headers {"Content-Type"  "image/jpeg"
+                              "Cache-Control" "public"
                               "Expires"       (.format (rfc1123-date-format)
                                                        (Date. (+ (System/currentTimeMillis)
                                                                  artwork-expires-msecs)))}
