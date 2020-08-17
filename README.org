@@ -1,5 +1,7 @@
 * Semira's music
 
+  [[file:doc/screenshot.png]]
+
 ** What is this?
 
    A simple application to stream audio from your server to your browser
