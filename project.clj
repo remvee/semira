@@ -7,7 +7,7 @@
                  [compojure "1.6.1"]
                  [ring/ring-jetty-adapter "1.8.1"]
                  [hiccup "1.0.5"]
-                 [ring-partial-content "2.0.0"]
+                 [ring-partial-content "2.0.1"]
                  [net.jthink/jaudiotagger "2.2.5"]
                  [org.clojure/core.async "1.3.610"]
                  [cljs-http "0.1.46"]
