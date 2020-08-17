@@ -1,7 +1,7 @@
-FROM ubuntu:trusty
+FROM ubuntu:focal
 
 # installation dependencies
-RUN apt-get update -y && apt-get install -y wget openjdk-7-jre-headless gstreamer1.0-tools gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly
+RUN apt-get update -y && apt-get install -y wget openjdk-8-jre-headless gstreamer1.0-tools gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly
 
 # setup app user and directory
 RUN yes | adduser app
