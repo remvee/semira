@@ -133,9 +133,7 @@
                     :headers {"Content-Type" "text/xml"}
                     :body    (rss albums)}))
   (compojure/GET "/update" []
-                 (future
-                   (models/scan)
-                   (models/purge))
+                 (models/update!)
                  (Thread/sleep 2000)
                  {:status  307
                   :headers {"Location" "/"}})

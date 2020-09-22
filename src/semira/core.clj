@@ -26,7 +26,7 @@
     (reset! server-atom
             (run-jetty #'web/app
                        {:host host, :port port, :join? false}))
-    (models/scan-if-empty)))
+    (models/init!)))
 
 (defn -main [& _]
   (start!))

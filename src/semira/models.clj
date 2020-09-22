@@ -7,12 +7,15 @@
 ;; this software.
 
 (ns semira.models
-  (:require [clojure.string :as s]
+  (:require [clojure.core.async :as async]
+            [clojure.string :as s]
             [clojure.tools.logging :as log]
             [semira.audio :as audio]
             [semira.text :refer [translit-to-ascii]]
             [semira.utils :as utils])
   (:import java.io.File))
+
+(def update-freq (* 24 60 60 1000))
 
 (def ^:private albums-file (get (System/getenv) "SEMIRA_ALBUMS_SEXP"
                                 "/tmp/semira.sexp"))
@@ -112,8 +115,7 @@
 
 (def ^:private audio-file-re #".+\.(mp3|m4a|flac|ogg)")
 
-(defn scan []
-  (log/info "started scanning")
+(defn scan! []
   (let [before (System/currentTimeMillis)]
     (doseq [file (->> (File. music-dir)
                       file-seq
@@ -122,10 +124,6 @@
       (update-file! file))
     (log/info "scanned in" (- (System/currentTimeMillis) before) "ms"))
   (send-off-backup))
-
-(defn scan-if-empty []
-  (when (empty? (albums))
-    (scan)))
 
 (defn- remove-track [albums id]
   (->> albums
@@ -141,7 +139,7 @@
   (swap! album-store remove-track
          (utils/sha1 (.getPath file))))
 
-(defn purge []
+(defn prune! []
   (let [before (System/currentTimeMillis)]
     (doseq [file (->> @album-store
                       (mapcat :tracks)
@@ -151,7 +149,24 @@
       (when-not (.exists file)
         (log/info "removing:" file)
         (remove-file! file)))
-    (log/info "purged in" (- (System/currentTimeMillis) before) "ms"))
+    (log/info "pruned in" (- (System/currentTimeMillis) before) "ms"))
   (send-off-backup))
+
+(defonce update-chan (async/chan))
+(defonce updater-running (atom false))
+
+(defn update! []
+  (async/put! update-chan :go!))
+
+(defn init! []
+  (when-not @updater-running
+    (reset! updater-running true)
+    (async/go-loop []
+      (log/info "starting update")
+      (prune!)
+      (scan!)
+      (log/info "finished update")
+      (async/alts! [update-chan (async/timeout update-freq)])
+      (recur))))
 
 (comment (reset! album-store nil))
