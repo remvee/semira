@@ -5,8 +5,8 @@
 
 (def app-name "SEMIRA")
 
-(defn titlize [{:keys [artist album title]}]
-  (->> [title album artist app-name]
+(defn titlize [{:keys [artist album album-artist title]}]
+  (->> [title album artist album-artist app-name]
        (map #(if (coll? %) (string/join " / " %) %))
        (filter (complement string/blank?))
        (string/join " - ")))

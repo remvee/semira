@@ -31,11 +31,12 @@
 (defn some-vals [m]
   (reduce (fn [m [k v]] (if (some? v) (assoc m k v) m)) nil m))
 
-(defn ->album [{:keys [genre composer artist album year id search-index artwork]}]
+(defn ->album [{:keys [genre composer artist album album-artist year id search-index artwork]}]
   (some-vals
    {:genre        (-> genre sort seq)
     :composer     (-> composer sort seq)
     :artist       (-> artist sort seq)
+    :album-artist album-artist
     :album        album
     :year         year
     :id           id
@@ -52,8 +53,8 @@
     :length   length
     :id       id}))
 
-(defn album-sort [{:keys [genre composer artist album year id]}]
-  (str [genre composer artist album year id]))
+(defn album-sort [{:keys [genre composer artist album album-artist year id]}]
+  (str [genre composer album-artist artist album year id]))
 
 (defn titleize [rec & keys]
   (->> keys (map rec) flatten (filter identity) (string/join " - ")))

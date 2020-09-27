@@ -51,6 +51,7 @@
                  (translit-to-ascii (.toLowerCase (str (:genre album) " "
                                                        (:composer album) " "
                                                        (:artist album) " "
+                                                       (:album-artist album) " "
                                                        (:album album) " "
                                                        (:year album))))
                  [[#"\s+" " "]

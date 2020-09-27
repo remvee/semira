@@ -54,6 +54,7 @@
                    "SynthPop"])
 
 (def fields [:artist
+             :album-artist
              :album
              :composer
              :conductor

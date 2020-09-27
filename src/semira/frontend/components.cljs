@@ -60,7 +60,7 @@
               (when selected "selected")]}
      [:a {:on-click #(sync/select-album! id (not selected))}
       [:div.details
-       (for [k [:year :genre :artist :album :composer]]
+       (for [k [:year :genre :artist :album-artist :album :composer]]
          (when-let [v (get album k)]
            [:div {:key k, :class k} (utils/h v)]))]]
      (when selected
