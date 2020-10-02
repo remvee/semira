@@ -67,13 +67,18 @@
   (let [full-tracks       (map #(merge album %) (:tracks album))
         common-value-keys (filter #(apply = (map % full-tracks))
                                   (disj (set (mapcat keys full-tracks))
-                                        :id :mtime :path :grouping :title :track :length))]
-    (merge (select-keys (first full-tracks) common-value-keys)
-           {:tracks (->> full-tracks
-                         (map #(apply dissoc % common-value-keys))
-                         (utils/sort-by-keys [:track :path :grouping :title])
-                         vec)}
-           (select-keys album [:id :mtime]))))
+                                        :id :mtime :path :grouping :title :track :length))
+        album (merge (select-keys (first full-tracks) common-value-keys)
+                     {:tracks (->> full-tracks
+                                   (map #(apply dissoc % common-value-keys))
+                                   (utils/sort-by-keys [:track :path :grouping :title])
+                                   vec)}
+                     (select-keys album [:id :mtime]))]
+    (if-let [album-artist (:album-artist album)]
+      (-> album
+          (dissoc :album-artist)
+          (assoc :artist album-artist))
+      album)))
 
 (defn update-track [albums album-id track]
   (let [album (-> (update (or (->> albums (filter #(= album-id (:id %))) first)

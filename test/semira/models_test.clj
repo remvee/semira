@@ -35,6 +35,12 @@
          (sut/normalize-album {:tracks [{:title "test 1" :artist "test"}
                                         {:title "test 2" :artist "test"}]}))
       "same track artist moved up to album")
+  (is (= {:artist "artist"
+          :tracks [{:title "test 1"} {:title "test 2"}]}
+         (sut/normalize-album {:album-artist "artist"
+                               :tracks [{:title "test 1" :artist "test"}
+                                        {:title "test 2" :artist "test"}]}))
+      "artist over album artist")
   (is (= {:artist "test"
           :tracks [{:track 0} {:track 0}]}
          (sut/normalize-album {:tracks [{:artist "test", :track 0}
